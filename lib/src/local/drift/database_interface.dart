@@ -16,7 +16,7 @@ import 'utc_datetime_converter.dart';
 /// import 'package:just_sync/just_sync.dart';
 ///
 /// @DataClassName('MyData')
-/// class MyDataTable extends Table with JustSyncTableMixin {
+/// class MyDataTable extends Table with DriftSyncTableMixin {
 ///   // ... your table definition ...
 /// }
 ///

@@ -2,7 +2,7 @@ import 'package:drift/drift.dart';
 
 import 'utc_datetime_converter.dart';
 
-mixin JustSyncTableMixin on Table {
+mixin DriftSyncTableMixin on Table {
   TextColumn get scopeName => text()();
   TextColumn get scopeKeys => text()();
   // TextColumn get syncStatus =>
@@ -11,7 +11,7 @@ mixin JustSyncTableMixin on Table {
   DateTimeColumn get updatedAt => dateTime().map(UtcDateTimeConverter())();
 }
 
-mixin JustSyncSoftDeleteTableMixin on Table {
+mixin DriftSoftDeleteTableMixin on Table {
   DateTimeColumn get deletedAt =>
       dateTime().nullable().map(UtcDateTimeConverter())();
 }

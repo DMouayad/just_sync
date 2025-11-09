@@ -8,7 +8,7 @@ part 'test_database.g.dart';
   implementing: [DriftModel<String>, SupportsSoftDelete],
 )
 class MockTable extends Table
-    with JustSyncTableMixin, JustSyncSoftDeleteTableMixin {
+    with DriftSyncTableMixin, DriftSoftDeleteTableMixin {
   TextColumn get id => text()();
   TextColumn get title => text()();
   TextColumn get status => text().withDefault(Constant(''))();

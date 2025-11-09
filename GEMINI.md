@@ -51,7 +51,7 @@ This is the highly-optimized implementation for using Drift as the local data so
     *   `resolveColumn`: Map a string field name to a Drift `GeneratedColumn`.
     *   `toInsertCompanion`, `toUpdateCompanion`, `toSoftDeleteCompanion`: Map the data model `T` to the appropriate Drift `Companion` for writing.
     *   `fromJson`: Map a JSON `Map` to the data model `T`.
-*   **`JustSyncTableMixin`:** A critical mixin that developers **must** add to their Drift `Table` definitions. It provides the `updatedAt`, `scopeName`, and `scopeKeys` columns.
+*   **`DriftSyncTableMixin`:** A critical mixin that developers **must** add to their Drift `Table` definitions. It provides the `updatedAt`, `scopeName`, and `scopeKeys` columns.
 *   **`UtcDateTimeConverter`:** This custom Drift `TypeConverter` is applied to the `updatedAt` column by the mixin. It guarantees that all `DateTime` values are read from and written to the database as UTC, preventing timezone bugs at the lowest level.
 
 ### 3.4. `remote/` - The Remote Store
@@ -70,7 +70,7 @@ To implement `just_sync` for a new data model (e.g., `Todo`), follow these steps
     import 'package:just_sync/just_sync.dart';
 
     @DataClassName('Todo', implementing: [DriftModel<String>])
-    class Todos extends Table with JustSyncTableMixin, JustSyncSoftDeleteTableMixin {
+    class Todos extends Table with DriftSyncTableMixin, JustSyncSoftDeleteTableMixin {
       TextColumn get id => text()();
       TextColumn get title => text()();
       BoolColumn get completed => boolean().withDefault(const Constant(false))();
