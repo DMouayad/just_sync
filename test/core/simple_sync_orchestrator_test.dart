@@ -3,8 +3,8 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:drift/native.dart' show NativeDatabase;
 import 'package:just_sync/just_sync.dart';
 
-import 'utils/mock_drift_local_store.dart';
-import 'utils/test_database.dart';
+import '../utils/mock_drift_local_store.dart';
+import '../utils/test_database.dart';
 
 void main() {
   group('SimpleSyncOrchestrator', () {

@@ -1,6 +1,9 @@
 import 'dart:async';
 
-import 'package:just_sync/src/types.dart';
+import 'package:just_sync/src/models/cache_policy.dart';
+import 'package:just_sync/src/models/query_spec.dart';
+import 'package:just_sync/src/models/sync_scope.dart';
+import 'package:just_sync/src/models/traits.dart';
 
 import 'conflict_resolver.dart';
 import 'store_interfaces.dart';

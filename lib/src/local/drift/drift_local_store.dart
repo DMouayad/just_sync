@@ -2,15 +2,21 @@ import 'dart:convert';
 
 import 'package:drift/drift.dart' as drift;
 
-import 'package:just_sync/src/local/drift/just_sync_database.dart';
-import 'package:just_sync/src/store_interfaces.dart';
-import 'package:just_sync/src/types.dart';
+import 'package:just_sync/src/core/store_interfaces.dart';
+import 'package:just_sync/src/local/drift/database_interface.dart';
+import 'package:just_sync/src/models/query_spec.dart';
+import 'package:just_sync/src/models/sync_scope.dart';
+import 'package:just_sync/src/models/traits.dart';
 
-abstract class DriftLocalStore<T extends JustSyncModel, Id>
+abstract class DriftModel<Id> extends drift.DataClass
+    implements HasId<Id>, HasUpdatedAt {}
+
+abstract class DriftLocalStore<T extends DriftModel<Id>, Id>
     implements LocalStore<T, Id> {
   const DriftLocalStore(this.db);
 
-  final IJustSyncDatabase db;
+  final IDriftDatabase db;
+
   @override
   bool get supportsSoftDelete => T is SupportsSoftDelete;
 
@@ -303,7 +309,6 @@ abstract class DriftLocalStore<T extends JustSyncModel, Id>
 
   @override
   Future<void> saveSyncPoint(SyncScope scope, DateTime timestamp) async {
-    // Use raw SQL for an "upsert" operation to be independent of generated code.
     await db.customInsert(
       'INSERT OR REPLACE INTO sync_points (scope_name, scope_keys, last_synced_at) VALUES (?, ?, ?)',
       variables: [

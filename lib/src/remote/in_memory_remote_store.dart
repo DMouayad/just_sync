@@ -1,5 +1,8 @@
-import 'package:just_sync/src/store_interfaces.dart';
-import 'package:just_sync/src/types.dart';
+import 'package:just_sync/src/core/store_interfaces.dart';
+import 'package:just_sync/src/models/delta.dart';
+import 'package:just_sync/src/models/query_spec.dart';
+import 'package:just_sync/src/models/sync_scope.dart';
+import 'package:just_sync/src/models/traits.dart';
 
 /// Simple in-memory RemoteStore implementation for demos/examples.
 /// Not intended for production use.
@@ -174,34 +177,40 @@ class InMemoryRemoteStore<T extends HasUpdatedAt, Id>
                 : DateTime.parse(v.toString()).toUtc();
             switch (f.op) {
               case FilterOperator.eq:
-                if (f.value == null)
+                if (f.value == null) {
                   throw ArgumentError('updatedAt eq requires value');
+                }
                 if (ts != asDt(f.value!)) return false;
                 break;
               case FilterOperator.neq:
-                if (f.value == null)
+                if (f.value == null) {
                   throw ArgumentError('updatedAt neq requires value');
+                }
                 if (ts == asDt(f.value!)) return false;
                 break;
               case FilterOperator.gt:
-                if (f.value == null)
+                if (f.value == null) {
                   throw ArgumentError('updatedAt gt requires value');
+                }
                 if (!(ts.isAfter(asDt(f.value!)))) return false;
                 break;
               case FilterOperator.gte:
-                if (f.value == null)
+                if (f.value == null) {
                   throw ArgumentError('updatedAt gte requires value');
+                }
                 final dt = asDt(f.value!);
                 if (!(ts.isAfter(dt) || ts.isAtSameMomentAs(dt))) return false;
                 break;
               case FilterOperator.lt:
-                if (f.value == null)
+                if (f.value == null) {
                   throw ArgumentError('updatedAt lt requires value');
+                }
                 if (!(ts.isBefore(asDt(f.value!)))) return false;
                 break;
               case FilterOperator.lte:
-                if (f.value == null)
+                if (f.value == null) {
                   throw ArgumentError('updatedAt lte requires value');
+                }
                 final dt = asDt(f.value!);
                 if (!(ts.isBefore(dt) || ts.isAtSameMomentAs(dt))) return false;
                 break;

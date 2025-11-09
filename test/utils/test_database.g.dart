@@ -233,7 +233,7 @@ class $MockTableTable extends MockTable
 }
 
 class TestModel extends DataClass
-    implements Insertable<TestModel>, JustSyncModel, SupportsSoftDelete {
+    implements Insertable<TestModel>, DriftModel<String>, SupportsSoftDelete {
   final String scopeName;
   final String scopeKeys;
   final DateTime updatedAt;

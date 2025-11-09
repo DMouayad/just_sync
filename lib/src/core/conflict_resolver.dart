@@ -1,4 +1,4 @@
-import 'package:just_sync/src/types/traits.dart';
+import 'package:just_sync/src/models/traits.dart';
 
 /// ConflictResolver decides which side wins when both local and remote changed.
 abstract interface class ConflictResolver<T extends HasUpdatedAt> {

@@ -1,5 +1,5 @@
-import '../store_interfaces.dart';
-import '../types/sync_scope.dart';
+import 'package:just_sync/src/models/query_spec.dart';
+import 'package:just_sync/src/models/sync_scope.dart';
 
 /// Data class describing a single filter operation in Supabase PostgREST.
 class SupabaseQueryOp {

@@ -3,7 +3,10 @@ import 'package:just_sync/just_sync.dart';
 
 part 'test_database.g.dart';
 
-@DataClassName('TestModel', implementing: [JustSyncModel, SupportsSoftDelete])
+@DataClassName(
+  'TestModel',
+  implementing: [DriftModel<String>, SupportsSoftDelete],
+)
 class MockTable extends Table
     with JustSyncTableMixin, JustSyncSoftDeleteTableMixin {
   TextColumn get id => text()();
@@ -17,7 +20,7 @@ class MockTable extends Table
 }
 
 @DriftDatabase(tables: [MockTable, SyncPoints, PendingOps])
-class TestDatabase extends _$TestDatabase implements IJustSyncDatabase {
+class TestDatabase extends _$TestDatabase implements IDriftDatabase {
   TestDatabase(super.e);
 
   @override

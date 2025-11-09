@@ -1,6 +1,7 @@
 import 'package:drift/drift.dart';
 
-import 'package:just_sync/src/store_interfaces.dart';
+import 'package:just_sync/src/models/query_spec.dart';
+
 import 'utc_datetime_converter.dart';
 
 /// An interface implemented by user-defined Drift databases.
@@ -20,12 +21,12 @@ import 'utc_datetime_converter.dart';
 /// }
 ///
 /// @DriftDatabase(tables: [MyDataTable, SyncPoints, PendingOps])
-/// class MyDatabase extends _$MyDatabase implements IJustSyncDatabase {
+/// class MyDatabase extends _$MyDatabase implements IDriftDatabase {
 ///   // ... your database constructor ...
 /// }
 /// ```
-abstract class IJustSyncDatabase extends GeneratedDatabase {
-  IJustSyncDatabase(super.executor);
+abstract class IDriftDatabase extends GeneratedDatabase {
+  IDriftDatabase(super.executor);
 
   SyncPoints get syncPoints;
   PendingOps get pendingOps;

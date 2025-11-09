@@ -1,8 +1,12 @@
 import 'package:supabase_flutter/supabase_flutter.dart';
 
-import 'package:just_sync/src/store_interfaces.dart';
-import 'package:just_sync/src/types.dart';
-import 'package:just_sync/src/remote/supabase_search_plan.dart';
+import 'package:just_sync/src/core/store_interfaces.dart';
+import 'package:just_sync/src/models/delta.dart';
+import 'package:just_sync/src/models/query_spec.dart';
+import 'package:just_sync/src/models/sync_scope.dart';
+import 'package:just_sync/src/models/traits.dart';
+
+import 'supabase_search_plan.dart';
 
 /// Supabase-backed implementation of RemoteStore using PostgREST.
 ///

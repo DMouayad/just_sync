@@ -1,6 +1,6 @@
 import 'package:flutter_test/flutter_test.dart';
-import 'package:just_sync/src/remote/in_memory_remote_store.dart';
-import 'package:just_sync/src/types.dart';
+
+import 'package:just_sync/just_sync.dart';
 
 import '../utils/test_database.dart';
 

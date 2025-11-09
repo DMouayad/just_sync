@@ -1,9 +1,7 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:drift/native.dart' show NativeDatabase;
 import 'package:drift/drift.dart' show driftRuntimeOptions;
-
-import 'package:just_sync/src/store_interfaces.dart';
-import 'package:just_sync/src/types.dart';
+import 'package:just_sync/just_sync.dart';
 
 import '../utils/mock_drift_local_store.dart';
 import '../utils/test_database.dart' hide PendingOp, SyncPoint;

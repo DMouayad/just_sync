@@ -1,18 +1,22 @@
 // == core ==
-export 'src/sync_orchestrator.dart';
-export 'src/conflict_resolver.dart';
-export 'src/simple_sync_orchestrator.dart';
-export 'src/store_interfaces.dart';
+export 'src/core/conflict_resolver.dart';
+export 'src/core/simple_sync_orchestrator.dart';
+export 'src/core/store_interfaces.dart';
+export 'src/core/sync_orchestrator.dart';
 
-// == types ==
-export 'src/types.dart';
+// == models ==
+export 'src/models/delta.dart';
+export 'src/models/query_spec.dart';
+export 'src/models/sync_scope.dart';
+export 'src/models/traits.dart';
+export 'src/models/cache_policy.dart';
 
-// == adapters ==
-export 'src/remote/supabase_remote_store.dart';
+// == remote ==
+export 'src/remote/supabase/supabase_remote_store.dart';
 export 'src/remote/in_memory_remote_store.dart';
 
 // == drift ==
-export 'src/local/drift/just_sync_database.dart';
+export 'src/local/drift/database_interface.dart';
 export 'src/local/drift/drift_local_store.dart';
 export 'src/local/drift/utc_datetime_converter.dart';
-export 'src/local/drift/just_sync_table_mixin.dart';
+export 'src/local/drift/table_mixin.dart';
