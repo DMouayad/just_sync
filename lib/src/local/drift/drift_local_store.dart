@@ -11,15 +11,23 @@ import 'package:just_sync/src/models/traits.dart';
 abstract class DriftModel<Id> extends drift.DataClass
     implements HasId<Id>, HasUpdatedAt {}
 
-abstract class DriftLocalStore<T extends DriftModel<Id>, Id>
+abstract class DriftLocalStore<
+  DB extends IDriftDatabase,
+  T extends DriftModel<Id>,
+  Id
+>
     implements LocalStore<T, Id> {
   const DriftLocalStore(this.db);
 
-  final IDriftDatabase db;
+  final DB db;
 
   @override
   bool get supportsSoftDelete => T is SupportsSoftDelete;
 
+  // == Abstract conversion functions to be implemented by the concrete adapter ==
+  T fromJson(Map<String, dynamic> json);
+  Id idFromString(String id);
+  String idToString(Id id);
   // == Abstract properties and methods to be implemented by concrete class ==
   drift.TableInfo get table;
   drift.GeneratedColumn resolveColumn(String fieldName);
@@ -279,13 +287,6 @@ abstract class DriftLocalStore<T extends DriftModel<Id>, Id>
     return results.map((row) => row as T).toList(growable: false);
   }
 
-  // == Abstract conversion functions to be implemented by the concrete adapter ==
-
-  T fromJson(Map<String, dynamic> json);
-  Map<String, dynamic> toJson(T model) => model.toJson();
-  Id idFromString(String id);
-  String idToString(Id id);
-
   // == Concrete implementations of generic LocalStore methods ==
 
   drift.TableInfo<drift.Table, dynamic> get _syncPoints =>
@@ -359,7 +360,7 @@ abstract class DriftLocalStore<T extends DriftModel<Id>, Id>
         drift.Variable(op.type.index),
         drift.Variable(idToString(op.id)),
         drift.Variable(
-          op.payload != null ? jsonEncode(toJson(op.payload as T)) : null,
+          op.payload != null ? jsonEncode((op.payload as T).toJson()) : null,
         ),
         drift.Variable(op.updatedAt),
       ],

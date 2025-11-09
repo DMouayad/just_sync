@@ -5,11 +5,9 @@ import 'package:just_sync/just_sync.dart';
 
 import 'test_database.dart';
 
-class MockDriftLocalStore extends DriftLocalStore<TestModel, String> {
-  MockDriftLocalStore(TestDatabase super.db);
-
-  @override
-  TestDatabase get db => super.db as TestDatabase;
+class MockDriftLocalStore
+    extends DriftLocalStore<TestDatabase, TestModel, String> {
+  MockDriftLocalStore(super.db);
 
   @override
   TableInfo get table => db.mockTable;
