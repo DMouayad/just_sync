@@ -289,18 +289,18 @@ abstract class DriftLocalStore<T extends DriftModel<Id>, Id>
   // == Concrete implementations of generic LocalStore methods ==
 
   drift.TableInfo<drift.Table, dynamic> get _syncPoints =>
-      db.allTables.firstWhere((t) => t.actualTableName == 'sync_points_table');
+      db.allTables.firstWhere((t) => t.actualTableName == 'sync_points');
 
   drift.TableInfo<drift.Table, dynamic> get _pendingOps =>
-      db.allTables.firstWhere((t) => t.actualTableName == 'pending_ops_table');
+      db.allTables.firstWhere((t) => t.actualTableName == 'pending_ops');
 
   @override
   Future<DateTime?> getSyncPoint(SyncScope scope) async {
     final query = db.select(_syncPoints)
       ..where(
         (t) =>
-            db.syncPointsTable.scopeName.equals(scope.name) &
-            db.syncPointsTable.scopeKeys.equals(jsonEncode(scope.keys)),
+            db.syncPoints.scopeName.equals(scope.name) &
+            db.syncPoints.scopeKeys.equals(jsonEncode(scope.keys)),
       );
     final result = await query.getSingleOrNull();
 
@@ -324,8 +324,8 @@ abstract class DriftLocalStore<T extends DriftModel<Id>, Id>
     final query = db.select(_pendingOps)
       ..where(
         (t) =>
-            db.pendingOpsTable.scopeName.equals(scope.name) &
-            db.pendingOpsTable.scopeKeys.equals(jsonEncode(scope.keys)),
+            db.pendingOps.scopeName.equals(scope.name) &
+            db.pendingOps.scopeKeys.equals(jsonEncode(scope.keys)),
       );
     final rows = await query.get();
 
@@ -370,7 +370,7 @@ abstract class DriftLocalStore<T extends DriftModel<Id>, Id>
   Future<void> clearPendingOps(SyncScope scope, List<String> opIds) async {
     await (db.delete(
       _pendingOps,
-    )..where((t) => db.pendingOpsTable.id.isIn(opIds))).go();
+    )..where((t) => db.pendingOps.id.isIn(opIds))).go();
   }
 
   drift.Expression<bool> buildFilter(drift.GeneratedColumn column, FilterOp f) {

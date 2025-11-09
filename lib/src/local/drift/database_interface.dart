@@ -1,13 +1,11 @@
 import 'package:drift/drift.dart';
 
-import 'package:just_sync/src/models/query_spec.dart';
-
-import 'utc_datetime_converter.dart';
+import 'tables_mixin.dart';
 
 /// An interface implemented by user-defined Drift databases.
 ///
 /// By implementing this interface, you signal that your database includes the
-/// [SyncPointsTable] and [PendingOpsTable] tables, and the Drift generator will
+/// [SyncPointsTableMixin] and [PendingOpsTableMixin] tables, and the Drift generator will
 /// automatically create the necessary getters, fulfilling the interface contract.
 ///
 /// ### Example
@@ -20,7 +18,10 @@ import 'utc_datetime_converter.dart';
 ///   // ... your table definition ...
 /// }
 ///
-/// @DriftDatabase(tables: [MyDataTable, SyncPointsTable, PendingOpsTable])
+/// class SyncPoints extends Table with SyncPointsTableMixin {}
+/// class PendingOps extends Table with PendingOpsTableMixin {}
+///
+/// @DriftDatabase(tables: [MyDataTable, SyncPoints, PendingOps])
 /// class MyDatabase extends _$MyDatabase implements IDriftDatabase {
 ///   // ... your database constructor ...
 /// }
@@ -28,30 +29,6 @@ import 'utc_datetime_converter.dart';
 abstract class IDriftDatabase extends GeneratedDatabase {
   IDriftDatabase(super.executor);
 
-  SyncPointsTable get syncPointsTable;
-  PendingOpsTable get pendingOpsTable;
-}
-
-@DataClassName('SyncPoint')
-class SyncPointsTable extends Table {
-  TextColumn get scopeName => text()();
-  TextColumn get scopeKeys => text()();
-  DateTimeColumn get lastSyncedAt => dateTime().map(UtcDateTimeConverter())();
-
-  @override
-  Set<Column> get primaryKey => {scopeName, scopeKeys};
-}
-
-@DataClassName('PendingOp')
-class PendingOpsTable extends Table {
-  TextColumn get id => text()();
-  TextColumn get scopeName => text()();
-  TextColumn get scopeKeys => text()();
-  IntColumn get opType => intEnum<PendingOpType>()();
-  TextColumn get entityId => text()();
-  TextColumn get payload => text().nullable()();
-  DateTimeColumn get updatedAt => dateTime().map(UtcDateTimeConverter())();
-
-  @override
-  Set<Column> get primaryKey => {id};
+  SyncPointsTableMixin get syncPoints;
+  PendingOpsTableMixin get pendingOps;
 }

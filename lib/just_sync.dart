@@ -19,4 +19,4 @@ export 'src/remote/in_memory_remote_store.dart';
 export 'src/local/drift/database_interface.dart';
 export 'src/local/drift/drift_local_store.dart';
 export 'src/local/drift/utc_datetime_converter.dart';
-export 'src/local/drift/table_mixin.dart';
+export 'src/local/drift/tables_mixin.dart';

@@ -103,33 +103,39 @@ SupabaseSearchRequest buildSupabaseRemoteSearchRequest({
         final col = updatedAtColumn;
         switch (f.op) {
           case FilterOperator.eq:
-            if (f.value == null)
+            if (f.value == null) {
               throw ArgumentError('updatedAt eq requires value');
+            }
             filters.add(SupabaseQueryOp('eq', col, asIso(f.value!)));
             break;
           case FilterOperator.neq:
-            if (f.value == null)
+            if (f.value == null) {
               throw ArgumentError('updatedAt neq requires value');
+            }
             filters.add(SupabaseQueryOp('neq', col, asIso(f.value!)));
             break;
           case FilterOperator.gt:
-            if (f.value == null)
+            if (f.value == null) {
               throw ArgumentError('updatedAt gt requires value');
+            }
             filters.add(SupabaseQueryOp('gt', col, asIso(f.value!)));
             break;
           case FilterOperator.gte:
-            if (f.value == null)
+            if (f.value == null) {
               throw ArgumentError('updatedAt gte requires value');
+            }
             filters.add(SupabaseQueryOp('gte', col, asIso(f.value!)));
             break;
           case FilterOperator.lt:
-            if (f.value == null)
+            if (f.value == null) {
               throw ArgumentError('updatedAt lt requires value');
+            }
             filters.add(SupabaseQueryOp('lt', col, asIso(f.value!)));
             break;
           case FilterOperator.lte:
-            if (f.value == null)
+            if (f.value == null) {
               throw ArgumentError('updatedAt lte requires value');
+            }
             filters.add(SupabaseQueryOp('lte', col, asIso(f.value!)));
             break;
           case FilterOperator.inList:
