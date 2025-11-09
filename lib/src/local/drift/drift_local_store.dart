@@ -8,37 +8,79 @@ import 'package:just_sync/src/models/query_spec.dart';
 import 'package:just_sync/src/models/sync_scope.dart';
 import 'package:just_sync/src/models/traits.dart';
 
-abstract class DriftModel<Id> extends drift.DataClass
-    implements HasId<Id>, HasUpdatedAt {}
+/// Marker interface for models that are Drift DataClasses and implement
+/// [HasId] and [HasUpdatedAt].
+///
+/// Your generated Drift `DataClass` should implement this interface using
+/// the `implementing` argument in the `@DataClassName` annotation.
+///
+/// Example:
+/// ```dart
+/// @DataClassName(
+///   'MyModel',
+///   implementing: [DriftModel<String>, SupportsSoftDelete],
+/// )
+/// class MyTable extends Table with DriftSyncTableMixin { ... }
+/// ```
+abstract interface class DriftModel<Id> implements HasId<Id>, HasUpdatedAt {
+  Map<String, dynamic> toJson();
+}
 
-abstract class DriftLocalStore<
-  DB extends IDriftDatabase,
-  T extends DriftModel<Id>,
-  Id
->
+/// A concrete implementation of [LocalStore] for Drift databases.
+///
+/// Instead of extending this class, you should instantiate it with the required
+/// configuration for your specific data model and Drift table.
+class DriftLocalStore<DB extends IDriftDatabase, T extends DriftModel<Id>, Id>
     implements LocalStore<T, Id> {
-  const DriftLocalStore(this.db);
-
   final DB db;
+  final drift.TableInfo table;
+  final Id Function(String stringId) idFromString;
+  final String Function(Id id) idToString;
+  final T Function(Map<String, dynamic>) fromJson;
+  final drift.Insertable<T> Function(T model, SyncScope scope)
+  toInsertCompanion;
+  final drift.Insertable<T> Function(T model) toUpdateCompanion;
+  final drift.Insertable<T> Function() toSoftDeleteCompanion;
+
+  const DriftLocalStore(
+    this.db, {
+    required this.table,
+    required this.idFromString,
+    required this.idToString,
+    required this.fromJson,
+    required this.toInsertCompanion,
+    required this.toUpdateCompanion,
+    required this.toSoftDeleteCompanion,
+  });
 
   @override
-  bool get supportsSoftDelete => T is SupportsSoftDelete;
+  bool get supportsSoftDelete => table.columnsByName.containsKey('deleted_at');
 
-  // == Abstract conversion functions to be implemented by the concrete adapter ==
-  T fromJson(Map<String, dynamic> json);
-  Id idFromString(String id);
-  String idToString(Id id);
-  // == Abstract properties and methods to be implemented by concrete class ==
-  drift.TableInfo get table;
-  drift.GeneratedColumn resolveColumn(String fieldName);
-  drift.Insertable<T> toInsertCompanion(T model, SyncScope scope);
-  drift.Insertable<T> toUpdateCompanion(T model);
-  drift.Insertable<T> toSoftDeleteCompanion();
+  String _toSnakeCase(String text) {
+    return text
+        .replaceAllMapped(RegExp('(?<=[a-z])[A-Z]'), (m) => '_${m.group(0)}')
+        .toLowerCase();
+  }
+
+  drift.GeneratedColumn _resolveColumn(String fieldName) {
+    final column = table.columnsByName[_toSnakeCase(fieldName)];
+    if (column == null) {
+      throw ArgumentError(
+        'Column $fieldName not found in table ${table.actualTableName}',
+      );
+    }
+    return column;
+  }
 
   @override
   Future<T?> getById(Id id) async {
     final query = db.select(table)
-      ..where((t) => resolveColumn('id').equals(idToString(id)));
+      ..where((t) => _resolveColumn('id').equals(idToString(id)));
+
+    if (supportsSoftDelete) {
+      query.where((t) => _resolveColumn('deletedAt').isNull());
+    }
+
     return await query.getSingleOrNull();
   }
 
@@ -62,14 +104,13 @@ abstract class DriftLocalStore<
   Future<void> deleteMany(SyncScope scope, List<Id> ids) async {
     if (ids.isEmpty) return;
 
-    final idColumn = resolveColumn('id');
+    final idColumn = _resolveColumn('id');
     // This assumes the ID column type is compatible with what `idToString` produces.
     final stringIds = ids.map(idToString).toList();
 
-    // Build the `where` clause for the IDs within the given scope.
     buildWhereClause() {
-      final scopeNameCol = resolveColumn('scopeName');
-      final scopeKeysCol = resolveColumn('scopeKeys');
+      final scopeNameCol = _resolveColumn('scopeName');
+      final scopeKeysCol = _resolveColumn('scopeKeys');
 
       final scopeFilter =
           buildFilter(
@@ -89,7 +130,6 @@ abstract class DriftLocalStore<
             ),
           );
 
-      // This assumes the ID column can be filtered as a string.
       final idFilter = idColumn.isIn(stringIds);
 
       return (_) => scopeFilter & idFilter;
@@ -114,8 +154,8 @@ abstract class DriftLocalStore<
     final query = db.update(table);
 
     // Apply scope
-    final scopeNameCol = resolveColumn('scopeName');
-    final scopeKeysCol = resolveColumn('scopeKeys');
+    final scopeNameCol = _resolveColumn('scopeName');
+    final scopeKeysCol = _resolveColumn('scopeKeys');
     query.where(
       (_) =>
           buildFilter(
@@ -136,10 +176,15 @@ abstract class DriftLocalStore<
           ),
     );
 
+    // Exclude soft-deleted items from updates
+    if (supportsSoftDelete) {
+      query.where((t) => _resolveColumn('deletedAt').isNull());
+    }
+
     // Apply QuerySpec filters
     drift.Expression<bool>? filter;
     for (final f in spec.filters) {
-      final newFilter = buildFilter(resolveColumn(f.field), f);
+      final newFilter = buildFilter(_resolveColumn(f.field), f);
       if (filter == null) {
         filter = newFilter;
       } else {
@@ -157,9 +202,8 @@ abstract class DriftLocalStore<
   @override
   Future<int> deleteWhere(SyncScope scope, QuerySpec spec) async {
     buildWhereClause() {
-      // Apply scope
-      final scopeNameCol = resolveColumn('scopeName');
-      final scopeKeysCol = resolveColumn('scopeKeys');
+      final scopeNameCol = _resolveColumn('scopeName');
+      final scopeKeysCol = _resolveColumn('scopeKeys');
       drift.Expression<bool> combinedFilter =
           buildFilter(
             scopeNameCol,
@@ -181,7 +225,7 @@ abstract class DriftLocalStore<
       // Apply QuerySpec filters
       drift.Expression<bool>? specFilter;
       for (final f in spec.filters) {
-        final newFilter = buildFilter(resolveColumn(f.field), f);
+        final newFilter = buildFilter(_resolveColumn(f.field), f);
         if (specFilter == null) {
           specFilter = newFilter;
         } else {
@@ -205,8 +249,6 @@ abstract class DriftLocalStore<
     }
   }
 
-  // == Concrete implementations of query methods ==
-
   @override
   Future<List<T>> query(SyncScope scope) {
     return queryWith(scope, const QuerySpec());
@@ -229,10 +271,8 @@ abstract class DriftLocalStore<
     final query = db.select(table);
 
     // Apply scope
-    // This assumes the table has scopeName and scopeKeys columns, which is
-    // enforced by the JustSyncModel and JustSyncTable mixin conventions.
-    final scopeNameCol = resolveColumn('scopeName');
-    final scopeKeysCol = resolveColumn('scopeKeys');
+    final scopeNameCol = _resolveColumn('scopeName');
+    final scopeKeysCol = _resolveColumn('scopeKeys');
     query.where(
       (_) =>
           buildFilter(
@@ -253,10 +293,15 @@ abstract class DriftLocalStore<
           ),
     );
 
+    // Exclude soft-deleted items
+    if (supportsSoftDelete) {
+      query.where((t) => _resolveColumn('deletedAt').isNull());
+    }
+
     // Apply QuerySpec filters
     drift.Expression<bool>? filter;
     for (final f in spec.filters) {
-      final newFilter = buildFilter(resolveColumn(f.field), f);
+      final newFilter = buildFilter(_resolveColumn(f.field), f);
       if (filter == null) {
         filter = newFilter;
       } else {
@@ -270,7 +315,7 @@ abstract class DriftLocalStore<
     // Apply ordering
     query.orderBy(
       spec.orderBy.map((o) {
-        final col = resolveColumn(o.field);
+        final col = _resolveColumn(o.field);
         final mode = o.descending
             ? drift.OrderingMode.desc
             : drift.OrderingMode.asc;
@@ -287,31 +332,22 @@ abstract class DriftLocalStore<
     return results.map((row) => row as T).toList(growable: false);
   }
 
-  // == Concrete implementations of generic LocalStore methods ==
-
-  drift.TableInfo<drift.Table, dynamic> get _syncPoints =>
-      db.allTables.firstWhere((t) => t.actualTableName == 'sync_points');
-
-  drift.TableInfo<drift.Table, dynamic> get _pendingOps =>
-      db.allTables.firstWhere((t) => t.actualTableName == 'pending_ops');
-
   @override
   Future<DateTime?> getSyncPoint(SyncScope scope) async {
-    final query = db.select(_syncPoints)
+    final query = db.select(db.syncPoints)
       ..where(
         (t) =>
-            db.syncPoints.scopeName.equals(scope.name) &
-            db.syncPoints.scopeKeys.equals(jsonEncode(scope.keys)),
+            t.scopeName.equals(scope.name) &
+            t.scopeKeys.equals(jsonEncode(scope.keys)),
       );
     final result = await query.getSingleOrNull();
-
     return result?.lastSyncedAt;
   }
 
   @override
   Future<void> saveSyncPoint(SyncScope scope, DateTime timestamp) async {
     await db.customInsert(
-      'INSERT OR REPLACE INTO ${_syncPoints.actualTableName} (scope_name, scope_keys, last_synced_at) VALUES (?, ?, ?)',
+      'INSERT OR REPLACE INTO ${db.syncPoints.actualTableName} (scope_name, scope_keys, last_synced_at) VALUES (?, ?, ?)',
       variables: [
         drift.Variable(scope.name),
         drift.Variable(jsonEncode(scope.keys)),
@@ -322,11 +358,11 @@ abstract class DriftLocalStore<
 
   @override
   Future<List<PendingOp<T, Id>>> getPendingOps(SyncScope scope) async {
-    final query = db.select(_pendingOps)
+    final query = db.select(db.pendingOps)
       ..where(
         (t) =>
-            db.pendingOps.scopeName.equals(scope.name) &
-            db.pendingOps.scopeKeys.equals(jsonEncode(scope.keys)),
+            t.scopeName.equals(scope.name) &
+            t.scopeKeys.equals(jsonEncode(scope.keys)),
       );
     final rows = await query.get();
 
@@ -339,8 +375,8 @@ abstract class DriftLocalStore<
             opId: row.id,
             scope: scope,
             type: row.opType,
-            payload: row.payload is String
-                ? fromJson(jsonDecode(row.payload))
+            payload: row.payload != null
+                ? fromJson(jsonDecode(row.payload!))
                 : null,
             updatedAt: row.updatedAt,
           );
@@ -351,8 +387,7 @@ abstract class DriftLocalStore<
   @override
   Future<void> enqueuePendingOp(PendingOp<T, Id> op) async {
     await db.customInsert(
-      'INSERT INTO ${_pendingOps.actualTableName} (${_pendingOps.columnsByName.keys.join(', ')}) VALUES (?, ?, ?, ?, ?, ?, ?)',
-      // order must be the same as column order in the table [PendingOp]
+      'INSERT INTO ${db.pendingOps.actualTableName} (id, scope_name, scope_keys, op_type, entity_id, payload, updated_at) VALUES (?, ?, ?, ?, ?, ?, ?)',
       variables: [
         drift.Variable(op.opId),
         drift.Variable(op.scope.name),
@@ -369,19 +404,15 @@ abstract class DriftLocalStore<
 
   @override
   Future<void> clearPendingOps(SyncScope scope, List<String> opIds) async {
-    await (db.delete(
-      _pendingOps,
-    )..where((t) => db.pendingOps.id.isIn(opIds))).go();
+    await (db.delete(db.pendingOps)..where((t) => t.id.isIn(opIds))).go();
   }
 
   drift.Expression<bool> buildFilter(drift.GeneratedColumn column, FilterOp f) {
     final value = f.value;
 
-    // Handle null checks first, as they don't need a value.
     if (f.op == FilterOperator.isNull) return column.isNull();
     if (f.op == FilterOperator.isNotNull) return column.isNotNull();
 
-    // For all other operators, a value is required.
     if (value == null) {
       throw ArgumentError('Filter value cannot be null for operator ${f.op}');
     }

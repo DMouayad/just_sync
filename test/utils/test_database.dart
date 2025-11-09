@@ -3,10 +3,7 @@ import 'package:just_sync/just_sync.dart';
 
 part 'test_database.g.dart';
 
-@DataClassName(
-  'TestModel',
-  implementing: [DriftModel<String>, SupportsSoftDelete],
-)
+@DataClassName('TestModel', implementing: [DriftModel<String>])
 class MockTable extends Table
     with DriftSyncTableMixin, DriftSoftDeleteTableMixin {
   TextColumn get id => text()();
@@ -18,10 +15,6 @@ class MockTable extends Table
   @override
   Set<Column> get primaryKey => {id};
 }
-
-class SyncPoints extends Table with SyncPointsTableMixin {}
-
-class PendingOps extends Table with PendingOpsTableMixin {}
 
 @DriftDatabase(tables: [MockTable, SyncPoints, PendingOps])
 class TestDatabase extends _$TestDatabase implements IDriftDatabase {
