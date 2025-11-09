@@ -1,5 +1,5 @@
-import 'package:drift/native.dart' show NativeDatabase;
 import 'package:flutter_test/flutter_test.dart';
+
 import 'package:drift/drift.dart' show driftRuntimeOptions;
 import 'package:just_sync/just_sync.dart';
 
@@ -20,7 +20,7 @@ void main() {
     const scope = SyncScope('records', {'userId': 'u1'});
 
     setUp(() async {
-      db = TestDatabase(NativeDatabase.memory());
+      db = TestDatabase();
       store = MockDriftLocalStore(db);
     });
     tearDown(() async => await db.close());

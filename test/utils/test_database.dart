@@ -1,4 +1,5 @@
 import 'package:drift/drift.dart';
+import 'package:drift/native.dart' show NativeDatabase;
 import 'package:just_sync/just_sync.dart';
 
 part 'test_database.g.dart';
@@ -18,7 +19,18 @@ class MockTable extends Table
 
 @DriftDatabase(tables: [MockTable, SyncPoints, PendingOps])
 class TestDatabase extends _$TestDatabase implements IDriftDatabase {
-  TestDatabase(super.e);
+  TestDatabase._(super.e);
+
+  factory TestDatabase({bool logStatements = false}) {
+    return TestDatabase._(
+      LazyDatabase(() async {
+        return DatabaseConnection(
+          NativeDatabase.memory(logStatements: logStatements),
+          closeStreamsSynchronously: true,
+        );
+      }),
+    );
+  }
 
   @override
   int get schemaVersion => 1;

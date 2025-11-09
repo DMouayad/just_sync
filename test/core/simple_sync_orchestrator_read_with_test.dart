@@ -1,6 +1,5 @@
 import 'package:flutter_test/flutter_test.dart';
 
-import 'package:drift/native.dart' show NativeDatabase;
 import 'package:just_sync/just_sync.dart';
 
 import '../utils/mock_drift_local_store.dart';
@@ -16,7 +15,7 @@ void main() {
     tearDown(() async => await db.close());
 
     setUp(() async {
-      db = TestDatabase(NativeDatabase.memory());
+      db = TestDatabase();
       local = MockDriftLocalStore(db);
       remote = InMemoryRemoteStore<TestModel, String>(idOf: (r) => r.id);
       // Seed remote scope maps so batchUpsert/fetchSince affect this scope
