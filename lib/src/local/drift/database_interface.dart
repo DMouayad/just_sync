@@ -7,7 +7,7 @@ import 'utc_datetime_converter.dart';
 /// An interface implemented by user-defined Drift databases.
 ///
 /// By implementing this interface, you signal that your database includes the
-/// [SyncPoints] and [PendingOps] tables, and the Drift generator will
+/// [SyncPointsTable] and [PendingOpsTable] tables, and the Drift generator will
 /// automatically create the necessary getters, fulfilling the interface contract.
 ///
 /// ### Example
@@ -20,7 +20,7 @@ import 'utc_datetime_converter.dart';
 ///   // ... your table definition ...
 /// }
 ///
-/// @DriftDatabase(tables: [MyDataTable, SyncPoints, PendingOps])
+/// @DriftDatabase(tables: [MyDataTable, SyncPointsTable, PendingOpsTable])
 /// class MyDatabase extends _$MyDatabase implements IDriftDatabase {
 ///   // ... your database constructor ...
 /// }
@@ -28,12 +28,12 @@ import 'utc_datetime_converter.dart';
 abstract class IDriftDatabase extends GeneratedDatabase {
   IDriftDatabase(super.executor);
 
-  SyncPoints get syncPoints;
-  PendingOps get pendingOps;
+  SyncPointsTable get syncPointsTable;
+  PendingOpsTable get pendingOpsTable;
 }
 
 @DataClassName('SyncPoint')
-class SyncPoints extends Table {
+class SyncPointsTable extends Table {
   TextColumn get scopeName => text()();
   TextColumn get scopeKeys => text()();
   DateTimeColumn get lastSyncedAt => dateTime().map(UtcDateTimeConverter())();
@@ -43,7 +43,7 @@ class SyncPoints extends Table {
 }
 
 @DataClassName('PendingOp')
-class PendingOps extends Table {
+class PendingOpsTable extends Table {
   TextColumn get id => text()();
   TextColumn get scopeName => text()();
   TextColumn get scopeKeys => text()();

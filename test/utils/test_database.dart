@@ -19,7 +19,7 @@ class MockTable extends Table
   Set<Column> get primaryKey => {id};
 }
 
-@DriftDatabase(tables: [MockTable, SyncPoints, PendingOps])
+@DriftDatabase(tables: [MockTable, SyncPointsTable, PendingOpsTable])
 class TestDatabase extends _$TestDatabase implements IDriftDatabase {
   TestDatabase(super.e);
 

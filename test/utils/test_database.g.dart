@@ -555,12 +555,12 @@ class MockTableCompanion extends UpdateCompanion<TestModel> {
   }
 }
 
-class $SyncPointsTable extends SyncPoints
-    with TableInfo<$SyncPointsTable, SyncPoint> {
+class $SyncPointsTableTable extends SyncPointsTable
+    with TableInfo<$SyncPointsTableTable, SyncPoint> {
   @override
   final GeneratedDatabase attachedDatabase;
   final String? _alias;
-  $SyncPointsTable(this.attachedDatabase, [this._alias]);
+  $SyncPointsTableTable(this.attachedDatabase, [this._alias]);
   static const VerificationMeta _scopeNameMeta = const VerificationMeta(
     'scopeName',
   );
@@ -591,14 +591,14 @@ class $SyncPointsTable extends SyncPoints
         false,
         type: DriftSqlType.dateTime,
         requiredDuringInsert: true,
-      ).withConverter<DateTime>($SyncPointsTable.$converterlastSyncedAt);
+      ).withConverter<DateTime>($SyncPointsTableTable.$converterlastSyncedAt);
   @override
   List<GeneratedColumn> get $columns => [scopeName, scopeKeys, lastSyncedAt];
   @override
   String get aliasedName => _alias ?? actualTableName;
   @override
   String get actualTableName => $name;
-  static const String $name = 'sync_points';
+  static const String $name = 'sync_points_table';
   @override
   VerificationContext validateIntegrity(
     Insertable<SyncPoint> instance, {
@@ -639,7 +639,7 @@ class $SyncPointsTable extends SyncPoints
         DriftSqlType.string,
         data['${effectivePrefix}scope_keys'],
       )!,
-      lastSyncedAt: $SyncPointsTable.$converterlastSyncedAt.fromSql(
+      lastSyncedAt: $SyncPointsTableTable.$converterlastSyncedAt.fromSql(
         attachedDatabase.typeMapping.read(
           DriftSqlType.dateTime,
           data['${effectivePrefix}last_synced_at'],
@@ -649,8 +649,8 @@ class $SyncPointsTable extends SyncPoints
   }
 
   @override
-  $SyncPointsTable createAlias(String alias) {
-    return $SyncPointsTable(attachedDatabase, alias);
+  $SyncPointsTableTable createAlias(String alias) {
+    return $SyncPointsTableTable(attachedDatabase, alias);
   }
 
   static TypeConverter<DateTime, DateTime> $converterlastSyncedAt =
@@ -673,14 +673,14 @@ class SyncPoint extends DataClass implements Insertable<SyncPoint> {
     map['scope_keys'] = Variable<String>(scopeKeys);
     {
       map['last_synced_at'] = Variable<DateTime>(
-        $SyncPointsTable.$converterlastSyncedAt.toSql(lastSyncedAt),
+        $SyncPointsTableTable.$converterlastSyncedAt.toSql(lastSyncedAt),
       );
     }
     return map;
   }
 
-  SyncPointsCompanion toCompanion(bool nullToAbsent) {
-    return SyncPointsCompanion(
+  SyncPointsTableCompanion toCompanion(bool nullToAbsent) {
+    return SyncPointsTableCompanion(
       scopeName: Value(scopeName),
       scopeKeys: Value(scopeKeys),
       lastSyncedAt: Value(lastSyncedAt),
@@ -717,7 +717,7 @@ class SyncPoint extends DataClass implements Insertable<SyncPoint> {
     scopeKeys: scopeKeys ?? this.scopeKeys,
     lastSyncedAt: lastSyncedAt ?? this.lastSyncedAt,
   );
-  SyncPoint copyWithCompanion(SyncPointsCompanion data) {
+  SyncPoint copyWithCompanion(SyncPointsTableCompanion data) {
     return SyncPoint(
       scopeName: data.scopeName.present ? data.scopeName.value : this.scopeName,
       scopeKeys: data.scopeKeys.present ? data.scopeKeys.value : this.scopeKeys,
@@ -748,18 +748,18 @@ class SyncPoint extends DataClass implements Insertable<SyncPoint> {
           other.lastSyncedAt == this.lastSyncedAt);
 }
 
-class SyncPointsCompanion extends UpdateCompanion<SyncPoint> {
+class SyncPointsTableCompanion extends UpdateCompanion<SyncPoint> {
   final Value<String> scopeName;
   final Value<String> scopeKeys;
   final Value<DateTime> lastSyncedAt;
   final Value<int> rowid;
-  const SyncPointsCompanion({
+  const SyncPointsTableCompanion({
     this.scopeName = const Value.absent(),
     this.scopeKeys = const Value.absent(),
     this.lastSyncedAt = const Value.absent(),
     this.rowid = const Value.absent(),
   });
-  SyncPointsCompanion.insert({
+  SyncPointsTableCompanion.insert({
     required String scopeName,
     required String scopeKeys,
     required DateTime lastSyncedAt,
@@ -781,13 +781,13 @@ class SyncPointsCompanion extends UpdateCompanion<SyncPoint> {
     });
   }
 
-  SyncPointsCompanion copyWith({
+  SyncPointsTableCompanion copyWith({
     Value<String>? scopeName,
     Value<String>? scopeKeys,
     Value<DateTime>? lastSyncedAt,
     Value<int>? rowid,
   }) {
-    return SyncPointsCompanion(
+    return SyncPointsTableCompanion(
       scopeName: scopeName ?? this.scopeName,
       scopeKeys: scopeKeys ?? this.scopeKeys,
       lastSyncedAt: lastSyncedAt ?? this.lastSyncedAt,
@@ -806,7 +806,7 @@ class SyncPointsCompanion extends UpdateCompanion<SyncPoint> {
     }
     if (lastSyncedAt.present) {
       map['last_synced_at'] = Variable<DateTime>(
-        $SyncPointsTable.$converterlastSyncedAt.toSql(lastSyncedAt.value),
+        $SyncPointsTableTable.$converterlastSyncedAt.toSql(lastSyncedAt.value),
       );
     }
     if (rowid.present) {
@@ -817,7 +817,7 @@ class SyncPointsCompanion extends UpdateCompanion<SyncPoint> {
 
   @override
   String toString() {
-    return (StringBuffer('SyncPointsCompanion(')
+    return (StringBuffer('SyncPointsTableCompanion(')
           ..write('scopeName: $scopeName, ')
           ..write('scopeKeys: $scopeKeys, ')
           ..write('lastSyncedAt: $lastSyncedAt, ')
@@ -827,12 +827,12 @@ class SyncPointsCompanion extends UpdateCompanion<SyncPoint> {
   }
 }
 
-class $PendingOpsTable extends PendingOps
-    with TableInfo<$PendingOpsTable, PendingOp> {
+class $PendingOpsTableTable extends PendingOpsTable
+    with TableInfo<$PendingOpsTableTable, PendingOp> {
   @override
   final GeneratedDatabase attachedDatabase;
   final String? _alias;
-  $PendingOpsTable(this.attachedDatabase, [this._alias]);
+  $PendingOpsTableTable(this.attachedDatabase, [this._alias]);
   static const VerificationMeta _idMeta = const VerificationMeta('id');
   @override
   late final GeneratedColumn<String> id = GeneratedColumn<String>(
@@ -872,7 +872,7 @@ class $PendingOpsTable extends PendingOps
         false,
         type: DriftSqlType.int,
         requiredDuringInsert: true,
-      ).withConverter<PendingOpType>($PendingOpsTable.$converteropType);
+      ).withConverter<PendingOpType>($PendingOpsTableTable.$converteropType);
   static const VerificationMeta _entityIdMeta = const VerificationMeta(
     'entityId',
   );
@@ -903,7 +903,7 @@ class $PendingOpsTable extends PendingOps
         false,
         type: DriftSqlType.dateTime,
         requiredDuringInsert: true,
-      ).withConverter<DateTime>($PendingOpsTable.$converterupdatedAt);
+      ).withConverter<DateTime>($PendingOpsTableTable.$converterupdatedAt);
   @override
   List<GeneratedColumn> get $columns => [
     id,
@@ -918,7 +918,7 @@ class $PendingOpsTable extends PendingOps
   String get aliasedName => _alias ?? actualTableName;
   @override
   String get actualTableName => $name;
-  static const String $name = 'pending_ops';
+  static const String $name = 'pending_ops_table';
   @override
   VerificationContext validateIntegrity(
     Insertable<PendingOp> instance, {
@@ -982,7 +982,7 @@ class $PendingOpsTable extends PendingOps
         DriftSqlType.string,
         data['${effectivePrefix}scope_keys'],
       )!,
-      opType: $PendingOpsTable.$converteropType.fromSql(
+      opType: $PendingOpsTableTable.$converteropType.fromSql(
         attachedDatabase.typeMapping.read(
           DriftSqlType.int,
           data['${effectivePrefix}op_type'],
@@ -996,7 +996,7 @@ class $PendingOpsTable extends PendingOps
         DriftSqlType.string,
         data['${effectivePrefix}payload'],
       ),
-      updatedAt: $PendingOpsTable.$converterupdatedAt.fromSql(
+      updatedAt: $PendingOpsTableTable.$converterupdatedAt.fromSql(
         attachedDatabase.typeMapping.read(
           DriftSqlType.dateTime,
           data['${effectivePrefix}updated_at'],
@@ -1006,8 +1006,8 @@ class $PendingOpsTable extends PendingOps
   }
 
   @override
-  $PendingOpsTable createAlias(String alias) {
-    return $PendingOpsTable(attachedDatabase, alias);
+  $PendingOpsTableTable createAlias(String alias) {
+    return $PendingOpsTableTable(attachedDatabase, alias);
   }
 
   static JsonTypeConverter2<PendingOpType, int, int> $converteropType =
@@ -1041,7 +1041,7 @@ class PendingOp extends DataClass implements Insertable<PendingOp> {
     map['scope_keys'] = Variable<String>(scopeKeys);
     {
       map['op_type'] = Variable<int>(
-        $PendingOpsTable.$converteropType.toSql(opType),
+        $PendingOpsTableTable.$converteropType.toSql(opType),
       );
     }
     map['entity_id'] = Variable<String>(entityId);
@@ -1050,14 +1050,14 @@ class PendingOp extends DataClass implements Insertable<PendingOp> {
     }
     {
       map['updated_at'] = Variable<DateTime>(
-        $PendingOpsTable.$converterupdatedAt.toSql(updatedAt),
+        $PendingOpsTableTable.$converterupdatedAt.toSql(updatedAt),
       );
     }
     return map;
   }
 
-  PendingOpsCompanion toCompanion(bool nullToAbsent) {
-    return PendingOpsCompanion(
+  PendingOpsTableCompanion toCompanion(bool nullToAbsent) {
+    return PendingOpsTableCompanion(
       id: Value(id),
       scopeName: Value(scopeName),
       scopeKeys: Value(scopeKeys),
@@ -1079,7 +1079,7 @@ class PendingOp extends DataClass implements Insertable<PendingOp> {
       id: serializer.fromJson<String>(json['id']),
       scopeName: serializer.fromJson<String>(json['scopeName']),
       scopeKeys: serializer.fromJson<String>(json['scopeKeys']),
-      opType: $PendingOpsTable.$converteropType.fromJson(
+      opType: $PendingOpsTableTable.$converteropType.fromJson(
         serializer.fromJson<int>(json['opType']),
       ),
       entityId: serializer.fromJson<String>(json['entityId']),
@@ -1095,7 +1095,7 @@ class PendingOp extends DataClass implements Insertable<PendingOp> {
       'scopeName': serializer.toJson<String>(scopeName),
       'scopeKeys': serializer.toJson<String>(scopeKeys),
       'opType': serializer.toJson<int>(
-        $PendingOpsTable.$converteropType.toJson(opType),
+        $PendingOpsTableTable.$converteropType.toJson(opType),
       ),
       'entityId': serializer.toJson<String>(entityId),
       'payload': serializer.toJson<String?>(payload),
@@ -1120,7 +1120,7 @@ class PendingOp extends DataClass implements Insertable<PendingOp> {
     payload: payload.present ? payload.value : this.payload,
     updatedAt: updatedAt ?? this.updatedAt,
   );
-  PendingOp copyWithCompanion(PendingOpsCompanion data) {
+  PendingOp copyWithCompanion(PendingOpsTableCompanion data) {
     return PendingOp(
       id: data.id.present ? data.id.value : this.id,
       scopeName: data.scopeName.present ? data.scopeName.value : this.scopeName,
@@ -1169,7 +1169,7 @@ class PendingOp extends DataClass implements Insertable<PendingOp> {
           other.updatedAt == this.updatedAt);
 }
 
-class PendingOpsCompanion extends UpdateCompanion<PendingOp> {
+class PendingOpsTableCompanion extends UpdateCompanion<PendingOp> {
   final Value<String> id;
   final Value<String> scopeName;
   final Value<String> scopeKeys;
@@ -1178,7 +1178,7 @@ class PendingOpsCompanion extends UpdateCompanion<PendingOp> {
   final Value<String?> payload;
   final Value<DateTime> updatedAt;
   final Value<int> rowid;
-  const PendingOpsCompanion({
+  const PendingOpsTableCompanion({
     this.id = const Value.absent(),
     this.scopeName = const Value.absent(),
     this.scopeKeys = const Value.absent(),
@@ -1188,7 +1188,7 @@ class PendingOpsCompanion extends UpdateCompanion<PendingOp> {
     this.updatedAt = const Value.absent(),
     this.rowid = const Value.absent(),
   });
-  PendingOpsCompanion.insert({
+  PendingOpsTableCompanion.insert({
     required String id,
     required String scopeName,
     required String scopeKeys,
@@ -1225,7 +1225,7 @@ class PendingOpsCompanion extends UpdateCompanion<PendingOp> {
     });
   }
 
-  PendingOpsCompanion copyWith({
+  PendingOpsTableCompanion copyWith({
     Value<String>? id,
     Value<String>? scopeName,
     Value<String>? scopeKeys,
@@ -1235,7 +1235,7 @@ class PendingOpsCompanion extends UpdateCompanion<PendingOp> {
     Value<DateTime>? updatedAt,
     Value<int>? rowid,
   }) {
-    return PendingOpsCompanion(
+    return PendingOpsTableCompanion(
       id: id ?? this.id,
       scopeName: scopeName ?? this.scopeName,
       scopeKeys: scopeKeys ?? this.scopeKeys,
@@ -1261,7 +1261,7 @@ class PendingOpsCompanion extends UpdateCompanion<PendingOp> {
     }
     if (opType.present) {
       map['op_type'] = Variable<int>(
-        $PendingOpsTable.$converteropType.toSql(opType.value),
+        $PendingOpsTableTable.$converteropType.toSql(opType.value),
       );
     }
     if (entityId.present) {
@@ -1272,7 +1272,7 @@ class PendingOpsCompanion extends UpdateCompanion<PendingOp> {
     }
     if (updatedAt.present) {
       map['updated_at'] = Variable<DateTime>(
-        $PendingOpsTable.$converterupdatedAt.toSql(updatedAt.value),
+        $PendingOpsTableTable.$converterupdatedAt.toSql(updatedAt.value),
       );
     }
     if (rowid.present) {
@@ -1283,7 +1283,7 @@ class PendingOpsCompanion extends UpdateCompanion<PendingOp> {
 
   @override
   String toString() {
-    return (StringBuffer('PendingOpsCompanion(')
+    return (StringBuffer('PendingOpsTableCompanion(')
           ..write('id: $id, ')
           ..write('scopeName: $scopeName, ')
           ..write('scopeKeys: $scopeKeys, ')
@@ -1301,16 +1301,20 @@ abstract class _$TestDatabase extends GeneratedDatabase {
   _$TestDatabase(QueryExecutor e) : super(e);
   $TestDatabaseManager get managers => $TestDatabaseManager(this);
   late final $MockTableTable mockTable = $MockTableTable(this);
-  late final $SyncPointsTable syncPoints = $SyncPointsTable(this);
-  late final $PendingOpsTable pendingOps = $PendingOpsTable(this);
+  late final $SyncPointsTableTable syncPointsTable = $SyncPointsTableTable(
+    this,
+  );
+  late final $PendingOpsTableTable pendingOpsTable = $PendingOpsTableTable(
+    this,
+  );
   @override
   Iterable<TableInfo<Table, Object?>> get allTables =>
       allSchemaEntities.whereType<TableInfo<Table, Object?>>();
   @override
   List<DatabaseSchemaEntity> get allSchemaEntities => [
     mockTable,
-    syncPoints,
-    pendingOps,
+    syncPointsTable,
+    pendingOpsTable,
   ];
 }
 
@@ -1589,24 +1593,24 @@ typedef $$MockTableTableProcessedTableManager =
       TestModel,
       PrefetchHooks Function()
     >;
-typedef $$SyncPointsTableCreateCompanionBuilder =
-    SyncPointsCompanion Function({
+typedef $$SyncPointsTableTableCreateCompanionBuilder =
+    SyncPointsTableCompanion Function({
       required String scopeName,
       required String scopeKeys,
       required DateTime lastSyncedAt,
       Value<int> rowid,
     });
-typedef $$SyncPointsTableUpdateCompanionBuilder =
-    SyncPointsCompanion Function({
+typedef $$SyncPointsTableTableUpdateCompanionBuilder =
+    SyncPointsTableCompanion Function({
       Value<String> scopeName,
       Value<String> scopeKeys,
       Value<DateTime> lastSyncedAt,
       Value<int> rowid,
     });
 
-class $$SyncPointsTableFilterComposer
-    extends Composer<_$TestDatabase, $SyncPointsTable> {
-  $$SyncPointsTableFilterComposer({
+class $$SyncPointsTableTableFilterComposer
+    extends Composer<_$TestDatabase, $SyncPointsTableTable> {
+  $$SyncPointsTableTableFilterComposer({
     required super.$db,
     required super.$table,
     super.joinBuilder,
@@ -1630,9 +1634,9 @@ class $$SyncPointsTableFilterComposer
   );
 }
 
-class $$SyncPointsTableOrderingComposer
-    extends Composer<_$TestDatabase, $SyncPointsTable> {
-  $$SyncPointsTableOrderingComposer({
+class $$SyncPointsTableTableOrderingComposer
+    extends Composer<_$TestDatabase, $SyncPointsTableTable> {
+  $$SyncPointsTableTableOrderingComposer({
     required super.$db,
     required super.$table,
     super.joinBuilder,
@@ -1655,9 +1659,9 @@ class $$SyncPointsTableOrderingComposer
   );
 }
 
-class $$SyncPointsTableAnnotationComposer
-    extends Composer<_$TestDatabase, $SyncPointsTable> {
-  $$SyncPointsTableAnnotationComposer({
+class $$SyncPointsTableTableAnnotationComposer
+    extends Composer<_$TestDatabase, $SyncPointsTableTable> {
+  $$SyncPointsTableTableAnnotationComposer({
     required super.$db,
     required super.$table,
     super.joinBuilder,
@@ -1677,42 +1681,44 @@ class $$SyncPointsTableAnnotationComposer
       );
 }
 
-class $$SyncPointsTableTableManager
+class $$SyncPointsTableTableTableManager
     extends
         RootTableManager<
           _$TestDatabase,
-          $SyncPointsTable,
+          $SyncPointsTableTable,
           SyncPoint,
-          $$SyncPointsTableFilterComposer,
-          $$SyncPointsTableOrderingComposer,
-          $$SyncPointsTableAnnotationComposer,
-          $$SyncPointsTableCreateCompanionBuilder,
-          $$SyncPointsTableUpdateCompanionBuilder,
+          $$SyncPointsTableTableFilterComposer,
+          $$SyncPointsTableTableOrderingComposer,
+          $$SyncPointsTableTableAnnotationComposer,
+          $$SyncPointsTableTableCreateCompanionBuilder,
+          $$SyncPointsTableTableUpdateCompanionBuilder,
           (
             SyncPoint,
-            BaseReferences<_$TestDatabase, $SyncPointsTable, SyncPoint>,
+            BaseReferences<_$TestDatabase, $SyncPointsTableTable, SyncPoint>,
           ),
           SyncPoint,
           PrefetchHooks Function()
         > {
-  $$SyncPointsTableTableManager(_$TestDatabase db, $SyncPointsTable table)
-    : super(
+  $$SyncPointsTableTableTableManager(
+    _$TestDatabase db,
+    $SyncPointsTableTable table,
+  ) : super(
         TableManagerState(
           db: db,
           table: table,
           createFilteringComposer: () =>
-              $$SyncPointsTableFilterComposer($db: db, $table: table),
+              $$SyncPointsTableTableFilterComposer($db: db, $table: table),
           createOrderingComposer: () =>
-              $$SyncPointsTableOrderingComposer($db: db, $table: table),
+              $$SyncPointsTableTableOrderingComposer($db: db, $table: table),
           createComputedFieldComposer: () =>
-              $$SyncPointsTableAnnotationComposer($db: db, $table: table),
+              $$SyncPointsTableTableAnnotationComposer($db: db, $table: table),
           updateCompanionCallback:
               ({
                 Value<String> scopeName = const Value.absent(),
                 Value<String> scopeKeys = const Value.absent(),
                 Value<DateTime> lastSyncedAt = const Value.absent(),
                 Value<int> rowid = const Value.absent(),
-              }) => SyncPointsCompanion(
+              }) => SyncPointsTableCompanion(
                 scopeName: scopeName,
                 scopeKeys: scopeKeys,
                 lastSyncedAt: lastSyncedAt,
@@ -1724,7 +1730,7 @@ class $$SyncPointsTableTableManager
                 required String scopeKeys,
                 required DateTime lastSyncedAt,
                 Value<int> rowid = const Value.absent(),
-              }) => SyncPointsCompanion.insert(
+              }) => SyncPointsTableCompanion.insert(
                 scopeName: scopeName,
                 scopeKeys: scopeKeys,
                 lastSyncedAt: lastSyncedAt,
@@ -1738,22 +1744,25 @@ class $$SyncPointsTableTableManager
       );
 }
 
-typedef $$SyncPointsTableProcessedTableManager =
+typedef $$SyncPointsTableTableProcessedTableManager =
     ProcessedTableManager<
       _$TestDatabase,
-      $SyncPointsTable,
+      $SyncPointsTableTable,
       SyncPoint,
-      $$SyncPointsTableFilterComposer,
-      $$SyncPointsTableOrderingComposer,
-      $$SyncPointsTableAnnotationComposer,
-      $$SyncPointsTableCreateCompanionBuilder,
-      $$SyncPointsTableUpdateCompanionBuilder,
-      (SyncPoint, BaseReferences<_$TestDatabase, $SyncPointsTable, SyncPoint>),
+      $$SyncPointsTableTableFilterComposer,
+      $$SyncPointsTableTableOrderingComposer,
+      $$SyncPointsTableTableAnnotationComposer,
+      $$SyncPointsTableTableCreateCompanionBuilder,
+      $$SyncPointsTableTableUpdateCompanionBuilder,
+      (
+        SyncPoint,
+        BaseReferences<_$TestDatabase, $SyncPointsTableTable, SyncPoint>,
+      ),
       SyncPoint,
       PrefetchHooks Function()
     >;
-typedef $$PendingOpsTableCreateCompanionBuilder =
-    PendingOpsCompanion Function({
+typedef $$PendingOpsTableTableCreateCompanionBuilder =
+    PendingOpsTableCompanion Function({
       required String id,
       required String scopeName,
       required String scopeKeys,
@@ -1763,8 +1772,8 @@ typedef $$PendingOpsTableCreateCompanionBuilder =
       required DateTime updatedAt,
       Value<int> rowid,
     });
-typedef $$PendingOpsTableUpdateCompanionBuilder =
-    PendingOpsCompanion Function({
+typedef $$PendingOpsTableTableUpdateCompanionBuilder =
+    PendingOpsTableCompanion Function({
       Value<String> id,
       Value<String> scopeName,
       Value<String> scopeKeys,
@@ -1775,9 +1784,9 @@ typedef $$PendingOpsTableUpdateCompanionBuilder =
       Value<int> rowid,
     });
 
-class $$PendingOpsTableFilterComposer
-    extends Composer<_$TestDatabase, $PendingOpsTable> {
-  $$PendingOpsTableFilterComposer({
+class $$PendingOpsTableTableFilterComposer
+    extends Composer<_$TestDatabase, $PendingOpsTableTable> {
+  $$PendingOpsTableTableFilterComposer({
     required super.$db,
     required super.$table,
     super.joinBuilder,
@@ -1822,9 +1831,9 @@ class $$PendingOpsTableFilterComposer
       );
 }
 
-class $$PendingOpsTableOrderingComposer
-    extends Composer<_$TestDatabase, $PendingOpsTable> {
-  $$PendingOpsTableOrderingComposer({
+class $$PendingOpsTableTableOrderingComposer
+    extends Composer<_$TestDatabase, $PendingOpsTableTable> {
+  $$PendingOpsTableTableOrderingComposer({
     required super.$db,
     required super.$table,
     super.joinBuilder,
@@ -1867,9 +1876,9 @@ class $$PendingOpsTableOrderingComposer
   );
 }
 
-class $$PendingOpsTableAnnotationComposer
-    extends Composer<_$TestDatabase, $PendingOpsTable> {
-  $$PendingOpsTableAnnotationComposer({
+class $$PendingOpsTableTableAnnotationComposer
+    extends Composer<_$TestDatabase, $PendingOpsTableTable> {
+  $$PendingOpsTableTableAnnotationComposer({
     required super.$db,
     required super.$table,
     super.joinBuilder,
@@ -1898,35 +1907,37 @@ class $$PendingOpsTableAnnotationComposer
       $composableBuilder(column: $table.updatedAt, builder: (column) => column);
 }
 
-class $$PendingOpsTableTableManager
+class $$PendingOpsTableTableTableManager
     extends
         RootTableManager<
           _$TestDatabase,
-          $PendingOpsTable,
+          $PendingOpsTableTable,
           PendingOp,
-          $$PendingOpsTableFilterComposer,
-          $$PendingOpsTableOrderingComposer,
-          $$PendingOpsTableAnnotationComposer,
-          $$PendingOpsTableCreateCompanionBuilder,
-          $$PendingOpsTableUpdateCompanionBuilder,
+          $$PendingOpsTableTableFilterComposer,
+          $$PendingOpsTableTableOrderingComposer,
+          $$PendingOpsTableTableAnnotationComposer,
+          $$PendingOpsTableTableCreateCompanionBuilder,
+          $$PendingOpsTableTableUpdateCompanionBuilder,
           (
             PendingOp,
-            BaseReferences<_$TestDatabase, $PendingOpsTable, PendingOp>,
+            BaseReferences<_$TestDatabase, $PendingOpsTableTable, PendingOp>,
           ),
           PendingOp,
           PrefetchHooks Function()
         > {
-  $$PendingOpsTableTableManager(_$TestDatabase db, $PendingOpsTable table)
-    : super(
+  $$PendingOpsTableTableTableManager(
+    _$TestDatabase db,
+    $PendingOpsTableTable table,
+  ) : super(
         TableManagerState(
           db: db,
           table: table,
           createFilteringComposer: () =>
-              $$PendingOpsTableFilterComposer($db: db, $table: table),
+              $$PendingOpsTableTableFilterComposer($db: db, $table: table),
           createOrderingComposer: () =>
-              $$PendingOpsTableOrderingComposer($db: db, $table: table),
+              $$PendingOpsTableTableOrderingComposer($db: db, $table: table),
           createComputedFieldComposer: () =>
-              $$PendingOpsTableAnnotationComposer($db: db, $table: table),
+              $$PendingOpsTableTableAnnotationComposer($db: db, $table: table),
           updateCompanionCallback:
               ({
                 Value<String> id = const Value.absent(),
@@ -1937,7 +1948,7 @@ class $$PendingOpsTableTableManager
                 Value<String?> payload = const Value.absent(),
                 Value<DateTime> updatedAt = const Value.absent(),
                 Value<int> rowid = const Value.absent(),
-              }) => PendingOpsCompanion(
+              }) => PendingOpsTableCompanion(
                 id: id,
                 scopeName: scopeName,
                 scopeKeys: scopeKeys,
@@ -1957,7 +1968,7 @@ class $$PendingOpsTableTableManager
                 Value<String?> payload = const Value.absent(),
                 required DateTime updatedAt,
                 Value<int> rowid = const Value.absent(),
-              }) => PendingOpsCompanion.insert(
+              }) => PendingOpsTableCompanion.insert(
                 id: id,
                 scopeName: scopeName,
                 scopeKeys: scopeKeys,
@@ -1975,17 +1986,20 @@ class $$PendingOpsTableTableManager
       );
 }
 
-typedef $$PendingOpsTableProcessedTableManager =
+typedef $$PendingOpsTableTableProcessedTableManager =
     ProcessedTableManager<
       _$TestDatabase,
-      $PendingOpsTable,
+      $PendingOpsTableTable,
       PendingOp,
-      $$PendingOpsTableFilterComposer,
-      $$PendingOpsTableOrderingComposer,
-      $$PendingOpsTableAnnotationComposer,
-      $$PendingOpsTableCreateCompanionBuilder,
-      $$PendingOpsTableUpdateCompanionBuilder,
-      (PendingOp, BaseReferences<_$TestDatabase, $PendingOpsTable, PendingOp>),
+      $$PendingOpsTableTableFilterComposer,
+      $$PendingOpsTableTableOrderingComposer,
+      $$PendingOpsTableTableAnnotationComposer,
+      $$PendingOpsTableTableCreateCompanionBuilder,
+      $$PendingOpsTableTableUpdateCompanionBuilder,
+      (
+        PendingOp,
+        BaseReferences<_$TestDatabase, $PendingOpsTableTable, PendingOp>,
+      ),
       PendingOp,
       PrefetchHooks Function()
     >;
@@ -1995,8 +2009,8 @@ class $TestDatabaseManager {
   $TestDatabaseManager(this._db);
   $$MockTableTableTableManager get mockTable =>
       $$MockTableTableTableManager(_db, _db.mockTable);
-  $$SyncPointsTableTableManager get syncPoints =>
-      $$SyncPointsTableTableManager(_db, _db.syncPoints);
-  $$PendingOpsTableTableManager get pendingOps =>
-      $$PendingOpsTableTableManager(_db, _db.pendingOps);
+  $$SyncPointsTableTableTableManager get syncPointsTable =>
+      $$SyncPointsTableTableTableManager(_db, _db.syncPointsTable);
+  $$PendingOpsTableTableTableManager get pendingOpsTable =>
+      $$PendingOpsTableTableTableManager(_db, _db.pendingOpsTable);
 }
