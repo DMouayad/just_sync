@@ -46,6 +46,7 @@ class TestModelFactory {
       count: count,
       tags: tags?.join(','),
       updatedAt: updatedAt ?? DateTime.now(),
+      createdAt: DateTime.now(),
     );
   }
 }

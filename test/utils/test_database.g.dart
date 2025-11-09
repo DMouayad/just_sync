@@ -31,6 +31,18 @@ class $MockTableTable extends MockTable
     type: DriftSqlType.string,
     requiredDuringInsert: true,
   );
+  static const VerificationMeta _createdAtMeta = const VerificationMeta(
+    'createdAt',
+  );
+  @override
+  late final GeneratedColumn<DateTime> createdAt = GeneratedColumn<DateTime>(
+    'created_at',
+    aliasedName,
+    false,
+    type: DriftSqlType.dateTime,
+    requiredDuringInsert: false,
+    defaultValue: Variable(DateTime.now()),
+  );
   @override
   late final GeneratedColumnWithTypeConverter<DateTime, DateTime> updatedAt =
       GeneratedColumn<DateTime>(
@@ -100,6 +112,7 @@ class $MockTableTable extends MockTable
   List<GeneratedColumn> get $columns => [
     scopeName,
     scopeKeys,
+    createdAt,
     updatedAt,
     deletedAt,
     id,
@@ -135,6 +148,12 @@ class $MockTableTable extends MockTable
       );
     } else if (isInserting) {
       context.missing(_scopeKeysMeta);
+    }
+    if (data.containsKey('created_at')) {
+      context.handle(
+        _createdAtMeta,
+        createdAt.isAcceptableOrUnknown(data['created_at']!, _createdAtMeta),
+      );
     }
     if (data.containsKey('id')) {
       context.handle(_idMeta, id.isAcceptableOrUnknown(data['id']!, _idMeta));
@@ -183,6 +202,10 @@ class $MockTableTable extends MockTable
       scopeKeys: attachedDatabase.typeMapping.read(
         DriftSqlType.string,
         data['${effectivePrefix}scope_keys'],
+      )!,
+      createdAt: attachedDatabase.typeMapping.read(
+        DriftSqlType.dateTime,
+        data['${effectivePrefix}created_at'],
       )!,
       updatedAt: $MockTableTable.$converterupdatedAt.fromSql(
         attachedDatabase.typeMapping.read(
@@ -236,6 +259,7 @@ class TestModel extends DataClass
     implements Insertable<TestModel>, DriftModel<String>, SupportsSoftDelete {
   final String scopeName;
   final String scopeKeys;
+  final DateTime createdAt;
   final DateTime updatedAt;
   final DateTime? deletedAt;
   final String id;
@@ -246,6 +270,7 @@ class TestModel extends DataClass
   const TestModel({
     required this.scopeName,
     required this.scopeKeys,
+    required this.createdAt,
     required this.updatedAt,
     this.deletedAt,
     required this.id,
@@ -259,6 +284,7 @@ class TestModel extends DataClass
     final map = <String, Expression>{};
     map['scope_name'] = Variable<String>(scopeName);
     map['scope_keys'] = Variable<String>(scopeKeys);
+    map['created_at'] = Variable<DateTime>(createdAt);
     {
       map['updated_at'] = Variable<DateTime>(
         $MockTableTable.$converterupdatedAt.toSql(updatedAt),
@@ -283,6 +309,7 @@ class TestModel extends DataClass
     return MockTableCompanion(
       scopeName: Value(scopeName),
       scopeKeys: Value(scopeKeys),
+      createdAt: Value(createdAt),
       updatedAt: Value(updatedAt),
       deletedAt: deletedAt == null && nullToAbsent
           ? const Value.absent()
@@ -303,6 +330,7 @@ class TestModel extends DataClass
     return TestModel(
       scopeName: serializer.fromJson<String>(json['scopeName']),
       scopeKeys: serializer.fromJson<String>(json['scopeKeys']),
+      createdAt: serializer.fromJson<DateTime>(json['createdAt']),
       updatedAt: serializer.fromJson<DateTime>(json['updatedAt']),
       deletedAt: serializer.fromJson<DateTime?>(json['deletedAt']),
       id: serializer.fromJson<String>(json['id']),
@@ -318,6 +346,7 @@ class TestModel extends DataClass
     return <String, dynamic>{
       'scopeName': serializer.toJson<String>(scopeName),
       'scopeKeys': serializer.toJson<String>(scopeKeys),
+      'createdAt': serializer.toJson<DateTime>(createdAt),
       'updatedAt': serializer.toJson<DateTime>(updatedAt),
       'deletedAt': serializer.toJson<DateTime?>(deletedAt),
       'id': serializer.toJson<String>(id),
@@ -331,6 +360,7 @@ class TestModel extends DataClass
   TestModel copyWith({
     String? scopeName,
     String? scopeKeys,
+    DateTime? createdAt,
     DateTime? updatedAt,
     Value<DateTime?> deletedAt = const Value.absent(),
     String? id,
@@ -341,6 +371,7 @@ class TestModel extends DataClass
   }) => TestModel(
     scopeName: scopeName ?? this.scopeName,
     scopeKeys: scopeKeys ?? this.scopeKeys,
+    createdAt: createdAt ?? this.createdAt,
     updatedAt: updatedAt ?? this.updatedAt,
     deletedAt: deletedAt.present ? deletedAt.value : this.deletedAt,
     id: id ?? this.id,
@@ -353,6 +384,7 @@ class TestModel extends DataClass
     return TestModel(
       scopeName: data.scopeName.present ? data.scopeName.value : this.scopeName,
       scopeKeys: data.scopeKeys.present ? data.scopeKeys.value : this.scopeKeys,
+      createdAt: data.createdAt.present ? data.createdAt.value : this.createdAt,
       updatedAt: data.updatedAt.present ? data.updatedAt.value : this.updatedAt,
       deletedAt: data.deletedAt.present ? data.deletedAt.value : this.deletedAt,
       id: data.id.present ? data.id.value : this.id,
@@ -368,6 +400,7 @@ class TestModel extends DataClass
     return (StringBuffer('TestModel(')
           ..write('scopeName: $scopeName, ')
           ..write('scopeKeys: $scopeKeys, ')
+          ..write('createdAt: $createdAt, ')
           ..write('updatedAt: $updatedAt, ')
           ..write('deletedAt: $deletedAt, ')
           ..write('id: $id, ')
@@ -383,6 +416,7 @@ class TestModel extends DataClass
   int get hashCode => Object.hash(
     scopeName,
     scopeKeys,
+    createdAt,
     updatedAt,
     deletedAt,
     id,
@@ -397,6 +431,7 @@ class TestModel extends DataClass
       (other is TestModel &&
           other.scopeName == this.scopeName &&
           other.scopeKeys == this.scopeKeys &&
+          other.createdAt == this.createdAt &&
           other.updatedAt == this.updatedAt &&
           other.deletedAt == this.deletedAt &&
           other.id == this.id &&
@@ -409,6 +444,7 @@ class TestModel extends DataClass
 class MockTableCompanion extends UpdateCompanion<TestModel> {
   final Value<String> scopeName;
   final Value<String> scopeKeys;
+  final Value<DateTime> createdAt;
   final Value<DateTime> updatedAt;
   final Value<DateTime?> deletedAt;
   final Value<String> id;
@@ -420,6 +456,7 @@ class MockTableCompanion extends UpdateCompanion<TestModel> {
   const MockTableCompanion({
     this.scopeName = const Value.absent(),
     this.scopeKeys = const Value.absent(),
+    this.createdAt = const Value.absent(),
     this.updatedAt = const Value.absent(),
     this.deletedAt = const Value.absent(),
     this.id = const Value.absent(),
@@ -432,6 +469,7 @@ class MockTableCompanion extends UpdateCompanion<TestModel> {
   MockTableCompanion.insert({
     required String scopeName,
     required String scopeKeys,
+    this.createdAt = const Value.absent(),
     required DateTime updatedAt,
     this.deletedAt = const Value.absent(),
     required String id,
@@ -448,6 +486,7 @@ class MockTableCompanion extends UpdateCompanion<TestModel> {
   static Insertable<TestModel> custom({
     Expression<String>? scopeName,
     Expression<String>? scopeKeys,
+    Expression<DateTime>? createdAt,
     Expression<DateTime>? updatedAt,
     Expression<DateTime>? deletedAt,
     Expression<String>? id,
@@ -460,6 +499,7 @@ class MockTableCompanion extends UpdateCompanion<TestModel> {
     return RawValuesInsertable({
       if (scopeName != null) 'scope_name': scopeName,
       if (scopeKeys != null) 'scope_keys': scopeKeys,
+      if (createdAt != null) 'created_at': createdAt,
       if (updatedAt != null) 'updated_at': updatedAt,
       if (deletedAt != null) 'deleted_at': deletedAt,
       if (id != null) 'id': id,
@@ -474,6 +514,7 @@ class MockTableCompanion extends UpdateCompanion<TestModel> {
   MockTableCompanion copyWith({
     Value<String>? scopeName,
     Value<String>? scopeKeys,
+    Value<DateTime>? createdAt,
     Value<DateTime>? updatedAt,
     Value<DateTime?>? deletedAt,
     Value<String>? id,
@@ -486,6 +527,7 @@ class MockTableCompanion extends UpdateCompanion<TestModel> {
     return MockTableCompanion(
       scopeName: scopeName ?? this.scopeName,
       scopeKeys: scopeKeys ?? this.scopeKeys,
+      createdAt: createdAt ?? this.createdAt,
       updatedAt: updatedAt ?? this.updatedAt,
       deletedAt: deletedAt ?? this.deletedAt,
       id: id ?? this.id,
@@ -505,6 +547,9 @@ class MockTableCompanion extends UpdateCompanion<TestModel> {
     }
     if (scopeKeys.present) {
       map['scope_keys'] = Variable<String>(scopeKeys.value);
+    }
+    if (createdAt.present) {
+      map['created_at'] = Variable<DateTime>(createdAt.value);
     }
     if (updatedAt.present) {
       map['updated_at'] = Variable<DateTime>(
@@ -542,6 +587,7 @@ class MockTableCompanion extends UpdateCompanion<TestModel> {
     return (StringBuffer('MockTableCompanion(')
           ..write('scopeName: $scopeName, ')
           ..write('scopeKeys: $scopeKeys, ')
+          ..write('createdAt: $createdAt, ')
           ..write('updatedAt: $updatedAt, ')
           ..write('deletedAt: $deletedAt, ')
           ..write('id: $id, ')
@@ -1322,6 +1368,7 @@ typedef $$MockTableTableCreateCompanionBuilder =
     MockTableCompanion Function({
       required String scopeName,
       required String scopeKeys,
+      Value<DateTime> createdAt,
       required DateTime updatedAt,
       Value<DateTime?> deletedAt,
       required String id,
@@ -1335,6 +1382,7 @@ typedef $$MockTableTableUpdateCompanionBuilder =
     MockTableCompanion Function({
       Value<String> scopeName,
       Value<String> scopeKeys,
+      Value<DateTime> createdAt,
       Value<DateTime> updatedAt,
       Value<DateTime?> deletedAt,
       Value<String> id,
@@ -1361,6 +1409,11 @@ class $$MockTableTableFilterComposer
 
   ColumnFilters<String> get scopeKeys => $composableBuilder(
     column: $table.scopeKeys,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<DateTime> get createdAt => $composableBuilder(
+    column: $table.createdAt,
     builder: (column) => ColumnFilters(column),
   );
 
@@ -1421,6 +1474,11 @@ class $$MockTableTableOrderingComposer
     builder: (column) => ColumnOrderings(column),
   );
 
+  ColumnOrderings<DateTime> get createdAt => $composableBuilder(
+    column: $table.createdAt,
+    builder: (column) => ColumnOrderings(column),
+  );
+
   ColumnOrderings<DateTime> get updatedAt => $composableBuilder(
     column: $table.updatedAt,
     builder: (column) => ColumnOrderings(column),
@@ -1471,6 +1529,9 @@ class $$MockTableTableAnnotationComposer
 
   GeneratedColumn<String> get scopeKeys =>
       $composableBuilder(column: $table.scopeKeys, builder: (column) => column);
+
+  GeneratedColumn<DateTime> get createdAt =>
+      $composableBuilder(column: $table.createdAt, builder: (column) => column);
 
   GeneratedColumnWithTypeConverter<DateTime, DateTime> get updatedAt =>
       $composableBuilder(column: $table.updatedAt, builder: (column) => column);
@@ -1527,6 +1588,7 @@ class $$MockTableTableTableManager
               ({
                 Value<String> scopeName = const Value.absent(),
                 Value<String> scopeKeys = const Value.absent(),
+                Value<DateTime> createdAt = const Value.absent(),
                 Value<DateTime> updatedAt = const Value.absent(),
                 Value<DateTime?> deletedAt = const Value.absent(),
                 Value<String> id = const Value.absent(),
@@ -1538,6 +1600,7 @@ class $$MockTableTableTableManager
               }) => MockTableCompanion(
                 scopeName: scopeName,
                 scopeKeys: scopeKeys,
+                createdAt: createdAt,
                 updatedAt: updatedAt,
                 deletedAt: deletedAt,
                 id: id,
@@ -1551,6 +1614,7 @@ class $$MockTableTableTableManager
               ({
                 required String scopeName,
                 required String scopeKeys,
+                Value<DateTime> createdAt = const Value.absent(),
                 required DateTime updatedAt,
                 Value<DateTime?> deletedAt = const Value.absent(),
                 required String id,
@@ -1562,6 +1626,7 @@ class $$MockTableTableTableManager
               }) => MockTableCompanion.insert(
                 scopeName: scopeName,
                 scopeKeys: scopeKeys,
+                createdAt: createdAt,
                 updatedAt: updatedAt,
                 deletedAt: deletedAt,
                 id: id,
