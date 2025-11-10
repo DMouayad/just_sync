@@ -78,7 +78,6 @@ To implement `just_sync` for a new data model (e.g., `Todo`), follow these steps
     ```dart
     import 'package:drift/drift.dart';
     import 'package:just_sync/just_sync.dart';
-    import 'dart:convert';
 
     part 'my_database.g.dart';
 
@@ -129,7 +128,7 @@ To implement `just_sync` for a new data model (e.g., `Todo`), follow these steps
         completed: model.completed,
         updatedAt: model.updatedAt,
         scopeName: scope.name,
-        scopeKeys: jsonEncode(scope.keys),
+        scopeKeys: scope.keysToJson(),
       ),
       toUpdateCompanion: (model) => TodosCompanion(
         title: Value(model.title),

@@ -18,7 +18,7 @@ class MockDriftLocalStore
             id: model.id,
             title: model.title,
             scopeName: scope.name,
-            scopeKeys: jsonEncode(scope.keys),
+            scopeKeys: scope.keysToJson(),
             status: Value(model.status),
             count: Value(model.count),
             tags: Value(model.tags),

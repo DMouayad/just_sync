@@ -1,12 +1,14 @@
+import 'dart:convert';
+
 /// Scope identifies a logical subset for syncing, e.g., per user or template.
 class SyncScope {
-  final String name; // e.g., 'records'
-  final Map<String, String>
-  keys; // e.g., { 'userId': 'u1', 'templateId': 't1' }
-
+  final String name;
+  final Map<String, String> keys;
   const SyncScope(this.name, [this.keys = const {}]);
 
   factory SyncScope.collection(String name) => SyncScope(name);
+
+  String keysToJson() => jsonEncode(keys);
 
   @override
   String toString() => 'SyncScope(name=$name, keys=$keys)';

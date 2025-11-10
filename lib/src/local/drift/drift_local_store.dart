@@ -126,7 +126,7 @@ class DriftLocalStore<DB extends IDriftDatabase, T extends DriftModel<Id>, Id>
             FilterOp(
               field: 'scopeKeys',
               op: FilterOperator.eq,
-              value: jsonEncode(scope.keys),
+              value: scope.keysToJson(),
             ),
           );
 
@@ -171,7 +171,7 @@ class DriftLocalStore<DB extends IDriftDatabase, T extends DriftModel<Id>, Id>
             FilterOp(
               field: 'scopeKeys',
               op: FilterOperator.eq,
-              value: jsonEncode(scope.keys),
+              value: scope.keysToJson(),
             ),
           ),
     );
@@ -218,7 +218,7 @@ class DriftLocalStore<DB extends IDriftDatabase, T extends DriftModel<Id>, Id>
             FilterOp(
               field: 'scopeKeys',
               op: FilterOperator.eq,
-              value: jsonEncode(scope.keys),
+              value: scope.keysToJson(),
             ),
           );
 
@@ -288,7 +288,7 @@ class DriftLocalStore<DB extends IDriftDatabase, T extends DriftModel<Id>, Id>
             FilterOp(
               field: 'scopeKeys',
               op: FilterOperator.eq,
-              value: jsonEncode(scope.keys),
+              value: scope.keysToJson(),
             ),
           ),
     );
@@ -338,7 +338,7 @@ class DriftLocalStore<DB extends IDriftDatabase, T extends DriftModel<Id>, Id>
       ..where(
         (t) =>
             t.scopeName.equals(scope.name) &
-            t.scopeKeys.equals(jsonEncode(scope.keys)),
+            t.scopeKeys.equals(scope.keysToJson()),
       );
     final result = await query.getSingleOrNull();
     return result?.lastSyncedAt;
@@ -350,7 +350,7 @@ class DriftLocalStore<DB extends IDriftDatabase, T extends DriftModel<Id>, Id>
       'INSERT OR REPLACE INTO ${db.syncPoints.actualTableName} (scope_name, scope_keys, last_synced_at) VALUES (?, ?, ?)',
       variables: [
         drift.Variable(scope.name),
-        drift.Variable(jsonEncode(scope.keys)),
+        drift.Variable(scope.keysToJson()),
         drift.Variable(timestamp),
       ],
     );
@@ -362,7 +362,7 @@ class DriftLocalStore<DB extends IDriftDatabase, T extends DriftModel<Id>, Id>
       ..where(
         (t) =>
             t.scopeName.equals(scope.name) &
-            t.scopeKeys.equals(jsonEncode(scope.keys)),
+            t.scopeKeys.equals(scope.keysToJson()),
       );
     final rows = await query.get();
 
