@@ -1,7 +1,11 @@
 name: just_sync
-description: "A robust, flexible, and efficient solution for synchronizing data between a local Drift database remote Supabase Postgres database."
+description: "A solution for building offline-first Flutter applications by synchronizing a local database with remote backend services."
 publish_to: 'none'
-version: 0.1.0
+version: 0.1.0-alpha
+repository: https://github.com/DMouayad/just_sync
+issue_tracker: https://github.com/DMouayad/just_sync/issues
+topics: [drift, supabase, sync, database]
+
 
 environment:
   sdk: '>=3.9.2 <4.0.0'
