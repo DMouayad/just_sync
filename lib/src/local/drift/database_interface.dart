@@ -18,6 +18,9 @@ import 'tables_mixin.dart';
 ///   // ... your table definition ...
 /// }
 ///
+/// class SyncPoints extends Table with SyncPointsTableMixin {}
+/// class PendingOps extends Table with PendingOpsTableMixin {}
+///
 /// @DriftDatabase(tables: [MyDataTable, SyncPoints, PendingOps])
 /// class MyDatabase extends _$MyDatabase implements IDriftDatabase {
 ///   // ... your database constructor ...
@@ -26,14 +29,6 @@ import 'tables_mixin.dart';
 abstract class IDriftDatabase extends GeneratedDatabase {
   IDriftDatabase(super.executor);
 
-  TableInfo<SyncPoints, dynamic> get syncPoints;
-  TableInfo<PendingOps, dynamic> get pendingOps;
+  TableInfo<SyncPointsTableMixin, dynamic> get syncPoints;
+  TableInfo<PendingOpsTableMixin, dynamic> get pendingOps;
 }
-
-/// Concrete table for storing synchronization points.
-/// Add this table to your `DriftDatabase`.
-class SyncPoints extends Table with SyncPointsTableMixin {}
-
-/// Concrete table for storing pending offline operations.
-/// Add this table to your `DriftDatabase`.
-class PendingOps extends Table with PendingOpsTableMixin {}

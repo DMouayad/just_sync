@@ -17,6 +17,10 @@ class MockTable extends Table
   Set<Column> get primaryKey => {id};
 }
 
+class SyncPoints extends Table with SyncPointsTableMixin {}
+
+class PendingOps extends Table with PendingOpsTableMixin {}
+
 @DriftDatabase(tables: [MockTable, SyncPoints, PendingOps])
 class TestDatabase extends _$TestDatabase implements IDriftDatabase {
   TestDatabase._(super.e);

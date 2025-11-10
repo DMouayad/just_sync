@@ -54,7 +54,9 @@ This is the highly-optimized implementation for using Drift as the local data so
     *   `fromJson`: A factory constructor or function to create an entity from a `Map` (for deserializing from `pending_ops`).
     *   `toInsertCompanion`/`toUpdateCompanion`/`toSoftDeleteCompanion`: Functions that create the appropriate Drift `Companion` for write operations.
 *   **`DriftSyncTableMixin`:** A critical mixin that developers **must** add to their Drift `Table` definitions. It provides the `updatedAt`, `scopeName`, and `scopeKeys` columns.
-*   **`SyncPoints` and `PendingOps` Tables:** The package provides concrete `Table` classes for internal metadata. Developers simply need to include `SyncPoints` and `PendingOps` in their database's `tables` list.
+*   **`SyncPoints` and `PendingOps` Tables:** The package provides the `SyncPointsTableMixin` and `PendingOpsTableMixin` for internal metadata. Developers must define their own concrete `Table` classes using these mixins and include them in their database's `tables` list.
+
+    *Rationale:* This approach was adopted to resolve a build-time issue where the Drift generator (`build_runner`) would fail to correctly analyze the pre-defined `SyncPoints` and `PendingOps` table classes across package boundaries. By having the end-user define the concrete tables in their own project, this resolution issue is avoided.
 *   **`UtcDateTimeConverter`:** This custom Drift `TypeConverter` is applied to the `updatedAt` column by the mixin. It guarantees that all `DateTime` values are read from and written to the database as UTC, preventing timezone bugs at the lowest level.
 
 ### 3.4. `remote/` - The Remote Store
@@ -94,6 +96,10 @@ To implement `just_sync` for a new data model (e.g., `Todo`), follow these steps
       @override
       Set<Column> get primaryKey => {id};
     }
+
+    // Define SyncPoints and PendingOps tables
+    class SyncPoints extends Table with SyncPointsTableMixin {}
+    class PendingOps extends Table with PendingOpsTableMixin {}
 
     // 2. Define the database, including the just_sync tables
     @DriftDatabase(tables: [Todos, SyncPoints, PendingOps])
