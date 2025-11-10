@@ -12,11 +12,6 @@ on:
       - "**.md"
 
 jobs:
-  check-imports:
-    uses: ./.github/workflows/check-imports.yaml
-  build-runner:
-    uses: ./.github/workflows/build-runner.yml
-
   build:
     name: Flutter test
     runs-on: ubuntu-latest
@@ -41,9 +36,6 @@ jobs:
       - name: Install and analyze
         run: |
           flutter pub get
-          cd cli && dart pub get
-          cd ../playground && flutter pub get
-          cd ..
           flutter analyze
 
       - name: Test
