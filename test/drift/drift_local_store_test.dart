@@ -183,5 +183,48 @@ void main() {
       expect(results, isNotEmpty);
       expect(results.first.updatedAt.isUtc, isTrue);
     });
+
+    test('updateWhere/deleteWhere work with spec', () async {
+      final now = DateTime.now().toUtc();
+      await store.upsertMany(scope, [
+        TestModelFactory.create(id: 'x', title: 'X', updatedAt: now),
+        TestModelFactory.create(id: 'y', title: 'Y', updatedAt: now),
+      ]);
+
+      // updateWhere: only ids that match spec should be updated
+      final spec = QuerySpec(
+        filters: [
+          FilterOp.inList('id', ['x']),
+        ],
+      );
+      final changed = await store.updateWhere(scope, spec, [
+        TestModelFactory.create(
+          id: 'x',
+          title: 'X2',
+          updatedAt: now.add(const Duration(seconds: 1)),
+        ),
+        TestModelFactory.create(
+          id: 'z',
+          title: 'Z',
+          updatedAt: now,
+        ), // should be ignored
+      ]);
+      expect(changed, 1);
+      final after = await store.queryWith(
+        scope,
+        QuerySpec(filters: [FilterOp.eq('id', 'x')]),
+      );
+      expect(after.single.title, 'X2');
+
+      // deleteWhere by id
+      final deleted = await store.deleteWhere(
+        scope,
+        QuerySpec(filters: [FilterOp.eq('id', 'y')]),
+      );
+      expect(deleted, 1);
+      final remain = await store.query(scope);
+      expect(remain.map((e) => e.id), contains('x'));
+      expect(remain.map((e) => e.id), isNot(contains('y')));
+    });
   });
 }

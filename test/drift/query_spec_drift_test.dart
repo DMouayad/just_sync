@@ -65,10 +65,7 @@ void main() {
 
       // status == 'open' AND count > 5, order by count desc, limit 2
       final spec = QuerySpec(
-        filters: const [
-          FilterOp(field: 'status', op: FilterOperator.eq, value: 'open'),
-          FilterOp(field: 'count', op: FilterOperator.gt, value: 5),
-        ],
+        filters: const [FilterOp.eq('status', 'open'), FilterOp.gt('count', 5)],
         orderBy: const [OrderSpec('count', descending: true)],
         limit: 2,
       );
@@ -78,69 +75,197 @@ void main() {
       // like on title, contains on tags, inList on status
       final spec2 = QuerySpec(
         filters: const [
-          FilterOp(field: 'title', op: FilterOperator.like, value: 'Al'),
-          FilterOp(field: 'tags', op: FilterOperator.contains, value: 'x'),
-          FilterOp(
-            field: 'status',
-            op: FilterOperator.inList,
-            value: ['open', 'closed'],
-          ),
+          FilterOp.like('title', 'Al'),
+          FilterOp.contains('tags', 'x'),
+          FilterOp.inList('status', ['open', 'closed']),
         ],
         orderBy: const [OrderSpec('id')],
       );
       final res2 = await store.queryWith(scope, spec2);
       expect(res2.map((e) => e.id).toList(), ['a', 'd']);
     });
+  });
+  group('QuerySpec filtering', () {
+    late TestDatabase db;
+    late MockDriftLocalStore store;
+    const scope = SyncScope('records', {'userId': 'u1'});
 
-    test('updateWhere/deleteWhere work with spec', () async {
-      final now = DateTime.now().toUtc();
-      await store.upsertMany(scope, [
-        TestModelFactory.create(id: 'x', title: 'X', updatedAt: now),
-        TestModelFactory.create(id: 'y', title: 'Y', updatedAt: now),
-      ]);
+    setUp(() async {
+      db = TestDatabase();
+      store = MockDriftLocalStore(db);
 
-      // updateWhere: only ids that match spec should be updated
+      final records = [
+        TestModelFactory.create(
+          id: '1',
+          title: 'apple',
+          count: 10,
+          updatedAt: DateTime.utc(2025, 1, 1),
+          completed: false,
+        ),
+        TestModelFactory.create(
+          id: '2',
+          title: 'banana',
+          count: 20,
+          updatedAt: DateTime.utc(2025, 1, 2),
+          completed: true,
+        ),
+        TestModelFactory.create(
+          id: '3',
+          title: 'apple pie',
+          count: 30,
+          updatedAt: DateTime.utc(2025, 1, 3),
+          completed: false,
+          tags: ['fruit', 'dessert'],
+        ),
+        TestModelFactory.create(
+          id: '4',
+          title: 'orange',
+          count: 20,
+          updatedAt: DateTime.utc(2025, 1, 4),
+          completed: true,
+        ),
+      ];
+      await store.upsertMany(scope, records);
+    });
+
+    tearDown(() async {
+      await db.close();
+    });
+
+    // String filters
+    test('String eq', () async {
+      final spec = QuerySpec(filters: [FilterOp.eq('title', 'apple')]);
+      final results = await store.queryWith(scope, spec);
+      expect(results.map((e) => e.id), ['1']);
+    });
+
+    test('String neq', () async {
+      final spec = QuerySpec(filters: [FilterOp.neq('title', 'apple')]);
+      final results = await store.queryWith(scope, spec);
+      expect(results.map((e) => e.id), unorderedEquals(['2', '3', '4']));
+    });
+
+    test('String contains', () async {
+      final spec = QuerySpec(filters: [FilterOp.contains('title', 'apple')]);
+      final results = await store.queryWith(scope, spec);
+      expect(results.map((e) => e.id), unorderedEquals(['1', '3']));
+    });
+
+    test('String inList', () async {
       final spec = QuerySpec(
-        filters: const [
-          FilterOp(field: 'id', op: FilterOperator.inList, value: ['x']),
+        filters: [
+          FilterOp.inList('title', ['apple', 'orange']),
         ],
       );
-      final changed = await store.updateWhere(scope, spec, [
-        TestModelFactory.create(
-          id: 'x',
-          title: 'X2',
-          updatedAt: now.add(const Duration(seconds: 1)),
-        ),
-        TestModelFactory.create(
-          id: 'z',
-          title: 'Z',
-          updatedAt: now,
-        ), // should be ignored
-      ]);
-      expect(changed, 1);
-      final after = await store.queryWith(
-        scope,
-        QuerySpec(
-          filters: const [
-            FilterOp(field: 'id', op: FilterOperator.eq, value: 'x'),
-          ],
-        ),
-      );
-      expect(after.single.title, 'X2');
+      final results = await store.queryWith(scope, spec);
+      expect(results.map((e) => e.id), unorderedEquals(['1', '4']));
+    });
 
-      // deleteWhere by id
-      final deleted = await store.deleteWhere(
-        scope,
-        QuerySpec(
-          filters: const [
-            FilterOp(field: 'id', op: FilterOperator.eq, value: 'y'),
-          ],
-        ),
+    // Int filters
+    test('Int gt', () async {
+      final spec = QuerySpec(filters: [FilterOp.gt('count', 20)]);
+      final results = await store.queryWith(scope, spec);
+      expect(results.map((e) => e.id), ['3']);
+    });
+
+    test('Int gte', () async {
+      final spec = QuerySpec(filters: [FilterOp.gte('count', 20)]);
+      final results = await store.queryWith(scope, spec);
+      expect(results.map((e) => e.id), unorderedEquals(['2', '3', '4']));
+    });
+
+    test('Int lt', () async {
+      final spec = QuerySpec(filters: [FilterOp.lt('count', 20)]);
+      final results = await store.queryWith(scope, spec);
+      expect(results.map((e) => e.id), ['1']);
+    });
+
+    test('Int lte', () async {
+      final spec = QuerySpec(filters: [FilterOp.lte('count', 20)]);
+      final results = await store.queryWith(scope, spec);
+      expect(results.map((e) => e.id), unorderedEquals(['1', '2', '4']));
+    });
+
+    test('Int inList', () async {
+      final spec = QuerySpec(
+        filters: [
+          FilterOp.inList('count', [10, 30]),
+        ],
       );
-      expect(deleted, 1);
-      final remain = await store.query(scope);
-      expect(remain.map((e) => e.id), contains('x'));
-      expect(remain.map((e) => e.id), isNot(contains('y')));
+      final results = await store.queryWith(scope, spec);
+      expect(results.map((e) => e.id), unorderedEquals(['1', '3']));
+    });
+
+    // DateTime filters
+    test('DateTime gt', () async {
+      final spec = QuerySpec(
+        filters: [FilterOp.gt('updatedAt', DateTime.utc(2025, 1, 2))],
+      );
+      final results = await store.queryWith(scope, spec);
+      expect(results.map((e) => e.id), unorderedEquals(['3', '4']));
+    });
+
+    test('DateTime lte', () async {
+      final spec = QuerySpec(
+        filters: [FilterOp.lte('updatedAt', DateTime.utc(2025, 1, 2))],
+      );
+      final results = await store.queryWith(scope, spec);
+      expect(results.map((e) => e.id), unorderedEquals(['1', '2']));
+    });
+
+    // Bool filters
+    test('Bool eq', () async {
+      final spec = QuerySpec(filters: [FilterOp.eq('completed', true)]);
+      final results = await store.queryWith(scope, spec);
+      expect(results.map((e) => e.id), unorderedEquals(['2', '4']));
+    });
+
+    // Null filters
+    test('isNull', () async {
+      final spec = QuerySpec(filters: [FilterOp.isNull('tags')]);
+      final results = await store.queryWith(scope, spec);
+      expect(results.map((e) => e.id), unorderedEquals(['1', '2', '4']));
+    });
+
+    test('isNotNull', () async {
+      final spec = QuerySpec(filters: [FilterOp.isNotNull('tags')]);
+      final results = await store.queryWith(scope, spec);
+      expect(results.map((e) => e.id), ['3']);
+    });
+
+    // Combined filters
+    test('multiple filters (AND)', () async {
+      final spec = QuerySpec(
+        filters: [FilterOp.gte('count', 20), FilterOp.eq('completed', true)],
+      );
+      final results = await store.queryWith(scope, spec);
+      expect(results.map((e) => e.id), unorderedEquals(['2', '4']));
+    });
+
+    // Ordering
+    test('orderBy ascending', () async {
+      final spec = QuerySpec(orderBy: [OrderSpec('count')]);
+      final results = await store.queryWith(scope, spec);
+      expect(results.map((e) => e.id), ['1', '2', '4', '3']);
+    });
+
+    test('orderBy descending', () async {
+      final spec = QuerySpec(orderBy: [OrderSpec('count', descending: true)]);
+      final results = await store.queryWith(scope, spec);
+      expect(results.map((e) => e.id), ['3', '2', '4', '1']);
+    });
+    group('QuerySpec Pagination', () {
+      test('limit', () async {
+        final spec = QuerySpec(orderBy: [OrderSpec('id')], limit: 2);
+        final results = await store.queryWith(scope, spec);
+        expect(results.map((e) => e.id), ['1', '2']);
+      });
+
+      test('limit and offset', () async {
+        final spec = QuerySpec(orderBy: [OrderSpec('id')], limit: 2, offset: 1);
+        final results = await store.queryWith(scope, spec);
+        expect(results.map((e) => e.id), ['2', '3']);
+      });
     });
   });
 }

@@ -62,16 +62,36 @@ enum FilterOperator {
   contains, // array contains or string contains depending on backend support
   isNull,
   isNotNull,
+  between,
   inList, // value IN (...)
 }
 
 /// A single filter predicate. Field names should match the serialized payload keys.
-class FilterOp {
+class FilterOp<T> {
   final String field;
   final FilterOperator op;
-  final Object? value;
+  final dynamic value;
 
-  const FilterOp({required this.field, required this.op, this.value});
+  const FilterOp.eq(this.field, T this.value) : op = FilterOperator.eq;
+  const FilterOp.neq(this.field, T this.value) : op = FilterOperator.neq;
+  const FilterOp.gt(this.field, T this.value) : op = FilterOperator.gt;
+  const FilterOp.gte(this.field, T this.value) : op = FilterOperator.gte;
+  const FilterOp.lt(this.field, T this.value) : op = FilterOperator.lt;
+  const FilterOp.lte(this.field, T this.value) : op = FilterOperator.lte;
+  const FilterOp.like(this.field, T this.value) : op = FilterOperator.like;
+  const FilterOp.between(
+    this.field, {
+    required T firstValue,
+    required T secondValue,
+  }) : op = FilterOperator.between,
+       value = (firstValue, secondValue);
+  const FilterOp.contains(this.field, this.value)
+    : op = FilterOperator.contains;
+  FilterOp.isNull(this.field) : op = FilterOperator.isNull, value = null;
+  FilterOp.isNotNull(this.field) : op = FilterOperator.isNotNull, value = null;
+  const FilterOp.inList(this.field, List values)
+    : op = FilterOperator.inList,
+      value = values;
 }
 
 /// Ordering specification.

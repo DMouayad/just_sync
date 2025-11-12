@@ -21,6 +21,7 @@ class MockDriftLocalStore
             count: Value(model.count),
             tags: Value(model.tags),
             updatedAt: model.updatedAt,
+            completed: Value(model.completed),
           );
         },
         toUpdateCompanion: (TestModel model) {
@@ -31,9 +32,10 @@ class MockDriftLocalStore
             count: Value(model.count),
             tags: Value(model.tags),
             updatedAt: Value(model.updatedAt),
+            completed: Value(model.completed),
           );
         },
         toSoftDeleteCompanion: () =>
-            MockTableCompanion(deletedAt: Value(DateTime.now())),
+            MockTableCompanion(deletedAt: Value(DateTime.now().toUtc())),
       );
 }

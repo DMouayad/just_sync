@@ -108,6 +108,21 @@ class $MockTableTable extends MockTable
     type: DriftSqlType.string,
     requiredDuringInsert: false,
   );
+  static const VerificationMeta _completedMeta = const VerificationMeta(
+    'completed',
+  );
+  @override
+  late final GeneratedColumn<bool> completed = GeneratedColumn<bool>(
+    'completed',
+    aliasedName,
+    false,
+    type: DriftSqlType.bool,
+    requiredDuringInsert: false,
+    defaultConstraints: GeneratedColumn.constraintIsAlways(
+      'CHECK ("completed" IN (0, 1))',
+    ),
+    defaultValue: const Constant(false),
+  );
   @override
   List<GeneratedColumn> get $columns => [
     scopeName,
@@ -120,6 +135,7 @@ class $MockTableTable extends MockTable
     status,
     count,
     tags,
+    completed,
   ];
   @override
   String get aliasedName => _alias ?? actualTableName;
@@ -186,6 +202,12 @@ class $MockTableTable extends MockTable
         tags.isAcceptableOrUnknown(data['tags']!, _tagsMeta),
       );
     }
+    if (data.containsKey('completed')) {
+      context.handle(
+        _completedMeta,
+        completed.isAcceptableOrUnknown(data['completed']!, _completedMeta),
+      );
+    }
     return context;
   }
 
@@ -239,6 +261,10 @@ class $MockTableTable extends MockTable
         DriftSqlType.string,
         data['${effectivePrefix}tags'],
       ),
+      completed: attachedDatabase.typeMapping.read(
+        DriftSqlType.bool,
+        data['${effectivePrefix}completed'],
+      )!,
     );
   }
 
@@ -267,6 +293,7 @@ class TestModel extends DataClass
   final String status;
   final int count;
   final String? tags;
+  final bool completed;
   const TestModel({
     required this.scopeName,
     required this.scopeKeys,
@@ -278,6 +305,7 @@ class TestModel extends DataClass
     required this.status,
     required this.count,
     this.tags,
+    required this.completed,
   });
   @override
   Map<String, Expression> toColumns(bool nullToAbsent) {
@@ -302,6 +330,7 @@ class TestModel extends DataClass
     if (!nullToAbsent || tags != null) {
       map['tags'] = Variable<String>(tags);
     }
+    map['completed'] = Variable<bool>(completed);
     return map;
   }
 
@@ -319,6 +348,7 @@ class TestModel extends DataClass
       status: Value(status),
       count: Value(count),
       tags: tags == null && nullToAbsent ? const Value.absent() : Value(tags),
+      completed: Value(completed),
     );
   }
 
@@ -338,6 +368,7 @@ class TestModel extends DataClass
       status: serializer.fromJson<String>(json['status']),
       count: serializer.fromJson<int>(json['count']),
       tags: serializer.fromJson<String?>(json['tags']),
+      completed: serializer.fromJson<bool>(json['completed']),
     );
   }
   @override
@@ -354,6 +385,7 @@ class TestModel extends DataClass
       'status': serializer.toJson<String>(status),
       'count': serializer.toJson<int>(count),
       'tags': serializer.toJson<String?>(tags),
+      'completed': serializer.toJson<bool>(completed),
     };
   }
 
@@ -368,6 +400,7 @@ class TestModel extends DataClass
     String? status,
     int? count,
     Value<String?> tags = const Value.absent(),
+    bool? completed,
   }) => TestModel(
     scopeName: scopeName ?? this.scopeName,
     scopeKeys: scopeKeys ?? this.scopeKeys,
@@ -379,6 +412,7 @@ class TestModel extends DataClass
     status: status ?? this.status,
     count: count ?? this.count,
     tags: tags.present ? tags.value : this.tags,
+    completed: completed ?? this.completed,
   );
   TestModel copyWithCompanion(MockTableCompanion data) {
     return TestModel(
@@ -392,6 +426,7 @@ class TestModel extends DataClass
       status: data.status.present ? data.status.value : this.status,
       count: data.count.present ? data.count.value : this.count,
       tags: data.tags.present ? data.tags.value : this.tags,
+      completed: data.completed.present ? data.completed.value : this.completed,
     );
   }
 
@@ -407,7 +442,8 @@ class TestModel extends DataClass
           ..write('title: $title, ')
           ..write('status: $status, ')
           ..write('count: $count, ')
-          ..write('tags: $tags')
+          ..write('tags: $tags, ')
+          ..write('completed: $completed')
           ..write(')'))
         .toString();
   }
@@ -424,6 +460,7 @@ class TestModel extends DataClass
     status,
     count,
     tags,
+    completed,
   );
   @override
   bool operator ==(Object other) =>
@@ -438,7 +475,8 @@ class TestModel extends DataClass
           other.title == this.title &&
           other.status == this.status &&
           other.count == this.count &&
-          other.tags == this.tags);
+          other.tags == this.tags &&
+          other.completed == this.completed);
 }
 
 class MockTableCompanion extends UpdateCompanion<TestModel> {
@@ -452,6 +490,7 @@ class MockTableCompanion extends UpdateCompanion<TestModel> {
   final Value<String> status;
   final Value<int> count;
   final Value<String?> tags;
+  final Value<bool> completed;
   final Value<int> rowid;
   const MockTableCompanion({
     this.scopeName = const Value.absent(),
@@ -464,6 +503,7 @@ class MockTableCompanion extends UpdateCompanion<TestModel> {
     this.status = const Value.absent(),
     this.count = const Value.absent(),
     this.tags = const Value.absent(),
+    this.completed = const Value.absent(),
     this.rowid = const Value.absent(),
   });
   MockTableCompanion.insert({
@@ -477,6 +517,7 @@ class MockTableCompanion extends UpdateCompanion<TestModel> {
     this.status = const Value.absent(),
     this.count = const Value.absent(),
     this.tags = const Value.absent(),
+    this.completed = const Value.absent(),
     this.rowid = const Value.absent(),
   }) : scopeName = Value(scopeName),
        scopeKeys = Value(scopeKeys),
@@ -494,6 +535,7 @@ class MockTableCompanion extends UpdateCompanion<TestModel> {
     Expression<String>? status,
     Expression<int>? count,
     Expression<String>? tags,
+    Expression<bool>? completed,
     Expression<int>? rowid,
   }) {
     return RawValuesInsertable({
@@ -507,6 +549,7 @@ class MockTableCompanion extends UpdateCompanion<TestModel> {
       if (status != null) 'status': status,
       if (count != null) 'count': count,
       if (tags != null) 'tags': tags,
+      if (completed != null) 'completed': completed,
       if (rowid != null) 'rowid': rowid,
     });
   }
@@ -522,6 +565,7 @@ class MockTableCompanion extends UpdateCompanion<TestModel> {
     Value<String>? status,
     Value<int>? count,
     Value<String?>? tags,
+    Value<bool>? completed,
     Value<int>? rowid,
   }) {
     return MockTableCompanion(
@@ -535,6 +579,7 @@ class MockTableCompanion extends UpdateCompanion<TestModel> {
       status: status ?? this.status,
       count: count ?? this.count,
       tags: tags ?? this.tags,
+      completed: completed ?? this.completed,
       rowid: rowid ?? this.rowid,
     );
   }
@@ -576,6 +621,9 @@ class MockTableCompanion extends UpdateCompanion<TestModel> {
     if (tags.present) {
       map['tags'] = Variable<String>(tags.value);
     }
+    if (completed.present) {
+      map['completed'] = Variable<bool>(completed.value);
+    }
     if (rowid.present) {
       map['rowid'] = Variable<int>(rowid.value);
     }
@@ -595,6 +643,7 @@ class MockTableCompanion extends UpdateCompanion<TestModel> {
           ..write('status: $status, ')
           ..write('count: $count, ')
           ..write('tags: $tags, ')
+          ..write('completed: $completed, ')
           ..write('rowid: $rowid')
           ..write(')'))
         .toString();
@@ -1372,6 +1421,7 @@ typedef $$MockTableTableCreateCompanionBuilder =
       Value<String> status,
       Value<int> count,
       Value<String?> tags,
+      Value<bool> completed,
       Value<int> rowid,
     });
 typedef $$MockTableTableUpdateCompanionBuilder =
@@ -1386,6 +1436,7 @@ typedef $$MockTableTableUpdateCompanionBuilder =
       Value<String> status,
       Value<int> count,
       Value<String?> tags,
+      Value<bool> completed,
       Value<int> rowid,
     });
 
@@ -1449,6 +1500,11 @@ class $$MockTableTableFilterComposer
     column: $table.tags,
     builder: (column) => ColumnFilters(column),
   );
+
+  ColumnFilters<bool> get completed => $composableBuilder(
+    column: $table.completed,
+    builder: (column) => ColumnFilters(column),
+  );
 }
 
 class $$MockTableTableOrderingComposer
@@ -1509,6 +1565,11 @@ class $$MockTableTableOrderingComposer
     column: $table.tags,
     builder: (column) => ColumnOrderings(column),
   );
+
+  ColumnOrderings<bool> get completed => $composableBuilder(
+    column: $table.completed,
+    builder: (column) => ColumnOrderings(column),
+  );
 }
 
 class $$MockTableTableAnnotationComposer
@@ -1549,6 +1610,9 @@ class $$MockTableTableAnnotationComposer
 
   GeneratedColumn<String> get tags =>
       $composableBuilder(column: $table.tags, builder: (column) => column);
+
+  GeneratedColumn<bool> get completed =>
+      $composableBuilder(column: $table.completed, builder: (column) => column);
 }
 
 class $$MockTableTableTableManager
@@ -1592,6 +1656,7 @@ class $$MockTableTableTableManager
                 Value<String> status = const Value.absent(),
                 Value<int> count = const Value.absent(),
                 Value<String?> tags = const Value.absent(),
+                Value<bool> completed = const Value.absent(),
                 Value<int> rowid = const Value.absent(),
               }) => MockTableCompanion(
                 scopeName: scopeName,
@@ -1604,6 +1669,7 @@ class $$MockTableTableTableManager
                 status: status,
                 count: count,
                 tags: tags,
+                completed: completed,
                 rowid: rowid,
               ),
           createCompanionCallback:
@@ -1618,6 +1684,7 @@ class $$MockTableTableTableManager
                 Value<String> status = const Value.absent(),
                 Value<int> count = const Value.absent(),
                 Value<String?> tags = const Value.absent(),
+                Value<bool> completed = const Value.absent(),
                 Value<int> rowid = const Value.absent(),
               }) => MockTableCompanion.insert(
                 scopeName: scopeName,
@@ -1630,6 +1697,7 @@ class $$MockTableTableTableManager
                 status: status,
                 count: count,
                 tags: tags,
+                completed: completed,
                 rowid: rowid,
               ),
           withReferenceMapper: (p0) => p0

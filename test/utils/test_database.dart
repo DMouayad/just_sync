@@ -12,6 +12,7 @@ class MockTable extends Table
   TextColumn get status => text().withDefault(Constant(''))();
   IntColumn get count => integer().withDefault(Constant(0))();
   TextColumn get tags => text().nullable()();
+  BoolColumn get completed => boolean().withDefault(const Constant(false))();
 
   @override
   Set<Column> get primaryKey => {id};
@@ -49,6 +50,7 @@ class TestModelFactory {
     int count = 0,
     List<String>? tags,
     String scopeKeys = '',
+    bool completed = false,
   }) {
     return TestModel(
       scopeName: 'test',
@@ -60,6 +62,7 @@ class TestModelFactory {
       tags: tags?.join(','),
       updatedAt: updatedAt ?? DateTime.now(),
       createdAt: DateTime.now(),
+      completed: completed,
     );
   }
 }

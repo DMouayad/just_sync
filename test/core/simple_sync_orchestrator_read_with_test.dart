@@ -48,9 +48,7 @@ void main() {
       ]);
 
       final spec = QuerySpec(
-        filters: [
-          FilterOp(field: 'updatedAt', op: FilterOperator.gte, value: t2025),
-        ],
+        filters: [FilterOp.gte('updatedAt', t2025)],
         orderBy: [OrderSpec('updatedAt', descending: false)],
       );
 
@@ -79,11 +77,7 @@ void main() {
           ),
         ]);
 
-        final spec = QuerySpec(
-          filters: [
-            FilterOp(field: 'updatedAt', op: FilterOperator.gte, value: base),
-          ],
-        );
+        final spec = QuerySpec(filters: [FilterOp.gte('updatedAt', base)]);
 
         final first = await orch.readWith(
           scope,
@@ -111,9 +105,7 @@ void main() {
       ]);
 
       final spec = QuerySpec(
-        filters: [
-          FilterOp(field: 'updatedAt', op: FilterOperator.gte, value: base),
-        ],
+        filters: [FilterOp.gte('updatedAt', base)],
         orderBy: [OrderSpec('updatedAt', descending: true)],
         limit: 1,
       );
@@ -141,9 +133,7 @@ void main() {
         ]);
 
         final spec = QuerySpec(
-          filters: [
-            FilterOp(field: 'updatedAt', op: FilterOperator.gte, value: base),
-          ],
+          filters: [FilterOp.gte('updatedAt', base)],
           orderBy: [OrderSpec('updatedAt', descending: false)],
         );
 

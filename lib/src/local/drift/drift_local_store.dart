@@ -113,21 +113,10 @@ class DriftLocalStore<DB extends IDriftDatabase, T extends DriftModel<Id>, Id>
       final scopeKeysCol = _resolveColumn('scopeKeys');
 
       final scopeFilter =
-          buildFilter(
-            scopeNameCol,
-            FilterOp(
-              field: 'scopeName',
-              op: FilterOperator.eq,
-              value: scope.name,
-            ),
-          ) &
+          buildFilter(scopeNameCol, FilterOp.eq('scopeName', scope.name)) &
           buildFilter(
             scopeKeysCol,
-            FilterOp(
-              field: 'scopeKeys',
-              op: FilterOperator.eq,
-              value: scope.keysToJson(),
-            ),
+            FilterOp.eq('scopeKeys', scope.keysToJson()),
           );
 
       final idFilter = idColumn.isIn(stringIds);
@@ -158,21 +147,10 @@ class DriftLocalStore<DB extends IDriftDatabase, T extends DriftModel<Id>, Id>
     final scopeKeysCol = _resolveColumn('scopeKeys');
     query.where(
       (_) =>
-          buildFilter(
-            scopeNameCol,
-            FilterOp(
-              field: 'scopeName',
-              op: FilterOperator.eq,
-              value: scope.name,
-            ),
-          ) &
+          buildFilter(scopeNameCol, FilterOp.eq('scopeName', scope.name)) &
           buildFilter(
             scopeKeysCol,
-            FilterOp(
-              field: 'scopeKeys',
-              op: FilterOperator.eq,
-              value: scope.keysToJson(),
-            ),
+            FilterOp.eq('scopeKeys', scope.keysToJson()),
           ),
     );
 
@@ -205,21 +183,10 @@ class DriftLocalStore<DB extends IDriftDatabase, T extends DriftModel<Id>, Id>
       final scopeNameCol = _resolveColumn('scopeName');
       final scopeKeysCol = _resolveColumn('scopeKeys');
       drift.Expression<bool> combinedFilter =
-          buildFilter(
-            scopeNameCol,
-            FilterOp(
-              field: 'scopeName',
-              op: FilterOperator.eq,
-              value: scope.name,
-            ),
-          ) &
+          buildFilter(scopeNameCol, FilterOp.eq('scopeName', scope.name)) &
           buildFilter(
             scopeKeysCol,
-            FilterOp(
-              field: 'scopeKeys',
-              op: FilterOperator.eq,
-              value: scope.keysToJson(),
-            ),
+            FilterOp.eq('scopeKeys', scope.keysToJson()),
           );
 
       // Apply QuerySpec filters
@@ -258,11 +225,7 @@ class DriftLocalStore<DB extends IDriftDatabase, T extends DriftModel<Id>, Id>
   Future<List<T>> querySince(SyncScope scope, DateTime since) {
     return queryWith(
       scope,
-      QuerySpec(
-        filters: [
-          FilterOp(field: 'updatedAt', op: FilterOperator.gt, value: since),
-        ],
-      ),
+      QuerySpec(filters: [FilterOp.gt('updatedAt', since)]),
     );
   }
 
@@ -275,21 +238,10 @@ class DriftLocalStore<DB extends IDriftDatabase, T extends DriftModel<Id>, Id>
     final scopeKeysCol = _resolveColumn('scopeKeys');
     query.where(
       (_) =>
-          buildFilter(
-            scopeNameCol,
-            FilterOp(
-              field: 'scopeName',
-              op: FilterOperator.eq,
-              value: scope.name,
-            ),
-          ) &
+          buildFilter(scopeNameCol, FilterOp.eq('scopeName', scope.name)) &
           buildFilter(
             scopeKeysCol,
-            FilterOp(
-              field: 'scopeKeys',
-              op: FilterOperator.eq,
-              value: scope.keysToJson(),
-            ),
+            FilterOp.eq('scopeKeys', scope.keysToJson()),
           ),
     );
 
@@ -422,25 +374,25 @@ class DriftLocalStore<DB extends IDriftDatabase, T extends DriftModel<Id>, Id>
     // String columns
     if (column is drift.Column<String>) {
       final col = column as drift.Column<String>;
-      final val = value.toString();
-
+      // final val = value.toString();
+      String valueToString() => value.toString();
       switch (f.op) {
         case FilterOperator.eq:
-          return col.equals(val);
+          return col.equals(valueToString());
         case FilterOperator.neq:
-          return col.equals(val).not();
+          return col.equals(valueToString()).not();
         case FilterOperator.like:
-          return col.like('%$val%');
+          return col.like('%${valueToString()}%');
         case FilterOperator.contains:
-          return col.like('%$val%');
+          return col.like('%${valueToString()}%');
         case FilterOperator.inList:
-          final valList = (value as Iterable?)?.map((v) => v.toString());
-          if (valList == null) {
-            throw ArgumentError(
-              'inList requires an Iterable for String column',
-            );
+          if (value is! Iterable) {
+            throw ArgumentError('inList requires an Iterable of String');
           }
-          return col.isIn(valList);
+          final List<String> list = value
+              .map((e) => e is String ? e : e.toString())
+              .toList();
+          return col.isIn(list);
         default:
           throw ArgumentError('Unsupported operator ${f.op} for String column');
       }
@@ -449,29 +401,30 @@ class DriftLocalStore<DB extends IDriftDatabase, T extends DriftModel<Id>, Id>
     // Integer columns
     if (column is drift.Column<int>) {
       final col = column as drift.Column<int>;
-      final val = value is int ? value : int.parse(value.toString());
+
+      int valueToInt() => int.parse(value.toString());
 
       switch (f.op) {
         case FilterOperator.eq:
-          return col.equals(val);
+          return col.equals(valueToInt());
         case FilterOperator.neq:
-          return col.equals(val).not();
+          return col.equals(valueToInt()).not();
         case FilterOperator.gt:
-          return col.isBiggerThanValue(val);
+          return col.isBiggerThanValue(valueToInt());
         case FilterOperator.gte:
-          return col.isBiggerOrEqualValue(val);
+          return col.isBiggerOrEqualValue(valueToInt());
         case FilterOperator.lt:
-          return col.isSmallerThanValue(val);
+          return col.isSmallerThanValue(valueToInt());
         case FilterOperator.lte:
-          return col.isSmallerOrEqualValue(val);
+          return col.isSmallerOrEqualValue(valueToInt());
         case FilterOperator.inList:
-          final valList = (value as Iterable?)?.map(
-            (v) => v is int ? v : int.parse(v.toString()),
-          );
-          if (valList == null) {
-            throw ArgumentError('inList requires an Iterable for int column');
+          if (value is! Iterable) {
+            throw ArgumentError('inList requires an Iterable of int');
           }
-          return col.isIn(valList);
+          final List<int> list = value
+              .map((e) => e is int ? e : int.parse(e.toString()))
+              .toList();
+          return col.isIn(list);
         default:
           throw ArgumentError('Unsupported operator ${f.op} for int column');
       }
@@ -495,6 +448,12 @@ class DriftLocalStore<DB extends IDriftDatabase, T extends DriftModel<Id>, Id>
           return col.isSmallerThanValue(val);
         case FilterOperator.lte:
           return col.isSmallerOrEqualValue(val);
+        case FilterOperator.between:
+          final valList = (value as List<DateTime>);
+          if (valList.length != 2) {
+            throw ArgumentError('between requires a list of 2 values');
+          }
+          return col.isBetweenValues(valList[0], valList[1]);
         case FilterOperator.inList:
           final valList = (value as Iterable?)?.map(
             (v) => v is DateTime ? v : DateTime.parse(v.toString()),
