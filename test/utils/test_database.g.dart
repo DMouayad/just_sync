@@ -18,7 +18,8 @@ class $MockTableTable extends MockTable
     aliasedName,
     false,
     type: DriftSqlType.string,
-    requiredDuringInsert: true,
+    requiredDuringInsert: false,
+    defaultValue: Constant(defaultScopeName),
   );
   static const VerificationMeta _scopeKeysMeta = const VerificationMeta(
     'scopeKeys',
@@ -29,7 +30,8 @@ class $MockTableTable extends MockTable
     aliasedName,
     false,
     type: DriftSqlType.string,
-    requiredDuringInsert: true,
+    requiredDuringInsert: false,
+    defaultValue: Constant(''),
   );
   static const VerificationMeta _createdAtMeta = const VerificationMeta(
     'createdAt',
@@ -154,16 +156,12 @@ class $MockTableTable extends MockTable
         _scopeNameMeta,
         scopeName.isAcceptableOrUnknown(data['scope_name']!, _scopeNameMeta),
       );
-    } else if (isInserting) {
-      context.missing(_scopeNameMeta);
     }
     if (data.containsKey('scope_keys')) {
       context.handle(
         _scopeKeysMeta,
         scopeKeys.isAcceptableOrUnknown(data['scope_keys']!, _scopeKeysMeta),
       );
-    } else if (isInserting) {
-      context.missing(_scopeKeysMeta);
     }
     if (data.containsKey('created_at')) {
       context.handle(
@@ -507,8 +505,8 @@ class MockTableCompanion extends UpdateCompanion<TestModel> {
     this.rowid = const Value.absent(),
   });
   MockTableCompanion.insert({
-    required String scopeName,
-    required String scopeKeys,
+    this.scopeName = const Value.absent(),
+    this.scopeKeys = const Value.absent(),
     this.createdAt = const Value.absent(),
     required DateTime updatedAt,
     this.deletedAt = const Value.absent(),
@@ -519,9 +517,7 @@ class MockTableCompanion extends UpdateCompanion<TestModel> {
     this.tags = const Value.absent(),
     this.completed = const Value.absent(),
     this.rowid = const Value.absent(),
-  }) : scopeName = Value(scopeName),
-       scopeKeys = Value(scopeKeys),
-       updatedAt = Value(updatedAt),
+  }) : updatedAt = Value(updatedAt),
        id = Value(id),
        title = Value(title);
   static Insertable<TestModel> custom({
@@ -1411,8 +1407,8 @@ abstract class _$TestDatabase extends GeneratedDatabase {
 
 typedef $$MockTableTableCreateCompanionBuilder =
     MockTableCompanion Function({
-      required String scopeName,
-      required String scopeKeys,
+      Value<String> scopeName,
+      Value<String> scopeKeys,
       Value<DateTime> createdAt,
       required DateTime updatedAt,
       Value<DateTime?> deletedAt,
@@ -1674,8 +1670,8 @@ class $$MockTableTableTableManager
               ),
           createCompanionCallback:
               ({
-                required String scopeName,
-                required String scopeKeys,
+                Value<String> scopeName = const Value.absent(),
+                Value<String> scopeKeys = const Value.absent(),
                 Value<DateTime> createdAt = const Value.absent(),
                 required DateTime updatedAt,
                 Value<DateTime?> deletedAt = const Value.absent(),

@@ -146,9 +146,11 @@ class SupabaseRemoteConfig<T, Id> {
 
 class SupabaseRemoteStore<T extends HasUpdatedAt, Id>
     implements RemoteStore<T, Id> {
+  @override
+  final String scopeName;
   final SupabaseRemoteConfig<T, Id> config;
 
-  const SupabaseRemoteStore({required this.config});
+  const SupabaseRemoteStore({required this.scopeName, required this.config});
 
   SupabaseQueryBuilder _table() => config.client.from(config.table);
 
@@ -165,11 +167,14 @@ class SupabaseRemoteStore<T extends HasUpdatedAt, Id>
   }
 
   @override
-  Future<Delta<T, Id>> fetchSince(SyncScope scope, DateTime? since) async {
+  Future<Delta<T, Id>> fetchSince(
+    SyncScopeKeys scopeKeys,
+    DateTime? since,
+  ) async {
     var upsertQuery = _table()
         .select()
-        .eq(config.scopeNameColumn, scope.name)
-        .contains(config.scopeKeysColumn, scope.keys);
+        .eq(config.scopeNameColumn, scopeName)
+        .contains(config.scopeKeysColumn, scopeKeys);
     if (since != null) {
       upsertQuery = upsertQuery.gt(
         config.updatedAtColumn,
@@ -190,8 +195,8 @@ class SupabaseRemoteStore<T extends HasUpdatedAt, Id>
     if (config.deletedAtColumn != null) {
       var delQ = _table()
           .select(config.idColumn)
-          .eq(config.scopeNameColumn, scope.name)
-          .contains(config.scopeKeysColumn, scope.keys);
+          .eq(config.scopeNameColumn, scopeName)
+          .contains(config.scopeKeysColumn, scopeKeys);
       if (since != null) {
         delQ = delQ.gt(config.updatedAtColumn, since.toUtc().toIso8601String());
       }
@@ -417,9 +422,9 @@ class SupabaseRemoteStore<T extends HasUpdatedAt, Id>
   }
 
   @override
-  Future<List<T>> remoteSearch(SyncScope scope, QuerySpec spec) async {
+  Future<List<T>> remoteSearch(SyncScopeKeys scopeKeys, QuerySpec spec) async {
     final plan = buildSupabaseRemoteSearchRequest(
-      scope: scope,
+      scope: SyncScope(scopeName, scopeKeys),
       spec: spec,
       idColumn: config.idColumn,
       updatedAtColumn: config.updatedAtColumn,

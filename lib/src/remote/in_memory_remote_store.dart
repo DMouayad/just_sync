@@ -9,14 +9,16 @@ import 'package:just_sync/src/models/traits.dart';
 class InMemoryRemoteStore<T extends HasUpdatedAt, Id>
     implements RemoteStore<T, Id> {
   final Id Function(T) idOf;
+  @override
+  final String scopeName;
 
   // Per-scope data and deletion logs
   final Map<String, Map<Id, T>> _data = {};
   final Map<String, Map<Id, DateTime>> _deletions = {};
 
-  InMemoryRemoteStore({required this.idOf});
+  InMemoryRemoteStore({required this.scopeName, required this.idOf});
 
-  String _scopeKey(SyncScope scope) => '${scope.name}|${scope.keys}';
+  String _scopeKey(SyncScopeKeys scopeKeys) => '$scopeName|$scopeKeys';
   Map<Id, T> _dataOf(String sk) => _data.putIfAbsent(sk, () => <Id, T>{});
   Map<Id, DateTime> _delOf(String sk) =>
       _deletions.putIfAbsent(sk, () => <Id, DateTime>{});
@@ -25,11 +27,11 @@ class InMemoryRemoteStore<T extends HasUpdatedAt, Id>
   /// This is intended solely for unit tests to control the in-memory state.
   /// It overwrites any existing entries with the same IDs in the target scope.
   void seedScope(
-    SyncScope scope, {
+    SyncScopeKeys scopeKeys, {
     List<T> items = const [],
     Map<Id, DateTime> deletions = const {},
   }) {
-    final sk = _scopeKey(scope);
+    final sk = _scopeKey(scopeKeys);
     final map = _dataOf(sk);
     for (final it in items) {
       map[idOf(it)] = it;
@@ -48,8 +50,11 @@ class InMemoryRemoteStore<T extends HasUpdatedAt, Id>
   }
 
   @override
-  Future<Delta<T, Id>> fetchSince(SyncScope scope, DateTime? since) async {
-    final sk = _scopeKey(scope);
+  Future<Delta<T, Id>> fetchSince(
+    SyncScopeKeys scopeKeys,
+    DateTime? since,
+  ) async {
+    final sk = _scopeKey(scopeKeys);
     final now = await getServerTime();
     final items = _dataOf(sk).values;
     final dels = _delOf(sk);
@@ -116,13 +121,13 @@ class InMemoryRemoteStore<T extends HasUpdatedAt, Id>
   Future<DateTime> getServerTime() async => DateTime.now().toUtc();
 
   @override
-  Future<List<T>> remoteSearch(SyncScope scope, QuerySpec spec) async {
+  Future<List<T>> remoteSearch(SyncScopeKeys scopeKeys, QuerySpec spec) async {
     // Keep validation consistent with other adapters
     if (spec.offset != null && spec.limit == null) {
       throw ArgumentError('offset requires limit for remoteSearch (InMemory)');
     }
 
-    final sk = _scopeKey(scope);
+    final sk = _scopeKey(scopeKeys);
     final items = List<T>.from(_dataOf(sk).values);
 
     bool match(T item) {

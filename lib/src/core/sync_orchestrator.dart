@@ -15,7 +15,7 @@ abstract interface class SyncOrchestrator<T extends HasUpdatedAt, Id> {
   RemoteStore<T, Id> get remote;
   ConflictResolver<T> get resolver;
 
-  Future<List<T>> read(SyncScope scope, {CachePolicy policy});
+  Future<List<T>> read(SyncScopeKeys scopeKeys, {CachePolicy policy});
 
   /// Read with a normalized query spec through the orchestrator.
   ///
@@ -30,7 +30,7 @@ abstract interface class SyncOrchestrator<T extends HasUpdatedAt, Id> {
   /// `ArgumentError`, the call will fall back to local (if [fallbackToLocal]
   /// is true) after performing a synchronization.
   Future<List<T>> readWith(
-    SyncScope scope,
+    SyncScopeKeys scopeKeys,
     QuerySpec spec, {
     CachePolicy policy = CachePolicy.remoteFirst,
     bool preferRemoteEval = false,
@@ -38,20 +38,24 @@ abstract interface class SyncOrchestrator<T extends HasUpdatedAt, Id> {
   });
 
   /// When online, push pending ops, fetch delta, and merge into local.
-  Future<void> synchronize(SyncScope scope);
+  Future<void> synchronize(SyncScopeKeys scopeKeys);
 
   /// Enqueue local ops and attempt background sync when possible.
   Future<void> enqueueCreate(
-    SyncScope scope,
+    SyncScopeKeys scopeKeys,
     Id id,
     T payload, {
     CachePolicy? policy,
   });
   Future<void> enqueueUpdate(
-    SyncScope scope,
+    SyncScopeKeys scopeKeys,
     Id id,
     T payload, {
     CachePolicy? policy,
   });
-  Future<void> enqueueDelete(SyncScope scope, Id id, {CachePolicy? policy});
+  Future<void> enqueueDelete(
+    SyncScopeKeys scopeKeys,
+    Id id, {
+    CachePolicy? policy,
+  });
 }

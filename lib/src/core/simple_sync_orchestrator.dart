@@ -1,6 +1,7 @@
 import 'dart:async';
 
 import 'package:just_sync/src/models/cache_policy.dart';
+import 'package:just_sync/src/models/pending_op.dart';
 import 'package:just_sync/src/models/query_spec.dart';
 import 'package:just_sync/src/models/sync_scope.dart';
 import 'package:just_sync/src/models/traits.dart';
@@ -32,30 +33,30 @@ class SimpleSyncOrchestrator<T extends HasUpdatedAt, Id>
 
   @override
   Future<List<T>> read(
-    SyncScope scope, {
+    SyncScopeKeys scopeKeys, {
     CachePolicy policy = CachePolicy.remoteFirst,
   }) async {
     switch (policy) {
       case CachePolicy.offlineOnly:
-        return local.query(scope);
+        return local.query(scopeKeys);
       case CachePolicy.onlineOnly:
-        await synchronize(scope);
-        final items = await local.query(scope);
+        await synchronize(scopeKeys);
+        final items = await local.query(scopeKeys);
         return items;
       case CachePolicy.localFirst:
         // Return local quickly and refresh from remote in the background.
-        final localItems = await local.query(scope);
-        unawaited(synchronize(scope));
+        final localItems = await local.query(scopeKeys);
+        unawaited(synchronize(scopeKeys));
         return localItems;
       case CachePolicy.remoteFirst:
-        await synchronize(scope);
-        return local.query(scope);
+        await synchronize(scopeKeys);
+        return local.query(scopeKeys);
     }
   }
 
   @override
   Future<List<T>> readWith(
-    SyncScope scope,
+    SyncScopeKeys scopeKeys,
     QuerySpec spec, {
     CachePolicy policy = CachePolicy.remoteFirst,
     bool preferRemoteEval = false,
@@ -64,11 +65,11 @@ class SimpleSyncOrchestrator<T extends HasUpdatedAt, Id>
     switch (policy) {
       case CachePolicy.offlineOnly:
         // Pure offline: evaluate QuerySpec against local cache only.
-        return local.queryWith(scope, spec);
+        return local.queryWith(scopeKeys, spec);
       case CachePolicy.localFirst:
         // Return local immediately; refresh in background.
-        final localItems = await local.queryWith(scope, spec);
-        unawaited(synchronize(scope));
+        final localItems = await local.queryWith(scopeKeys, spec);
+        unawaited(synchronize(scopeKeys));
         return localItems;
       case CachePolicy.remoteFirst:
       case CachePolicy.onlineOnly:
@@ -77,10 +78,10 @@ class SimpleSyncOrchestrator<T extends HasUpdatedAt, Id>
         // but still return the locally evaluated result for consistency.
         if (preferRemoteEval) {
           try {
-            final remoteItems = await remote.remoteSearch(scope, spec);
+            final remoteItems = await remote.remoteSearch(scopeKeys, spec);
             // Upsert remote-evaluated results into local cache to keep it fresh.
             if (remoteItems.isNotEmpty) {
-              await local.upsertMany(scope, remoteItems);
+              await local.upsertMany(scopeKeys, remoteItems);
             }
           } on ArgumentError catch (_) {
             // Backend did not support part of the spec. Fall back to sync+local.
@@ -88,15 +89,15 @@ class SimpleSyncOrchestrator<T extends HasUpdatedAt, Id>
           }
         }
 
-        await synchronize(scope);
-        return local.queryWith(scope, spec);
+        await synchronize(scopeKeys);
+        return local.queryWith(scopeKeys, spec);
     }
   }
 
   @override
-  Future<void> synchronize(SyncScope scope) async {
+  Future<void> synchronize(SyncScopeKeys scopeKeys) async {
     // 1) Push pending operations
-    final pending = await local.getPendingOps(scope);
+    final pending = await local.getPendingOps(scopeKeys);
     if (pending.isNotEmpty) {
       final creates = pending.where((p) => p.type == PendingOpType.create);
       final updates = pending.where((p) => p.type == PendingOpType.update);
@@ -111,15 +112,18 @@ class SimpleSyncOrchestrator<T extends HasUpdatedAt, Id>
       if (deletes.isNotEmpty) {
         await remote.batchDelete(deletes.map((p) => p.id).toList());
       }
-      await local.clearPendingOps(scope, pending.map((p) => p.opId).toList());
+      await local.clearPendingOps(
+        scopeKeys,
+        pending.map((p) => p.opId).toList(),
+      );
     }
 
     // 2) Fetch remote delta since the last sync point
-    final last = await local.getSyncPoint(scope);
-    final delta = await remote.fetchSince(scope, last);
+    final last = await local.getSyncPoint(scopeKeys);
+    final delta = await remote.fetchSince(scopeKeys, last);
 
     // 3) Merge with local using the conflict resolver
-    final localNow = await local.query(scope);
+    final localNow = await local.query(scopeKeys);
     final byId = {for (final item in localNow) idOf(item): item};
 
     // Apply upserts (with conflict resolution)
@@ -139,30 +143,30 @@ class SimpleSyncOrchestrator<T extends HasUpdatedAt, Id>
     }
 
     // 4) Persist merged state to local
-    await local.upsertMany(scope, byId.values.toList());
+    await local.upsertMany(scopeKeys, byId.values.toList());
     if (delta.deletes.isNotEmpty) {
-      await local.deleteMany(scope, delta.deletes);
+      await local.deleteMany(scopeKeys, delta.deletes);
     }
 
     // 5) Save sync point using server timestamp (avoid clock skew)
-    await local.saveSyncPoint(scope, delta.serverTimestamp);
+    await local.saveSyncPoint(scopeKeys, delta.serverTimestamp);
   }
 
   @override
   Future<void> enqueueCreate(
-    SyncScope scope,
+    SyncScopeKeys scopeKeys,
     Id id,
     T payload, {
     CachePolicy? policy,
   }) async {
-    await local.upsertMany(scope, [payload]);
+    await local.upsertMany(scopeKeys, [payload]);
     if (policy == CachePolicy.offlineOnly) {
       return;
     }
     await local.enqueuePendingOp(
       PendingOp<T, Id>(
         opId: _uuid(),
-        scope: scope,
+        scope: SyncScope(local.scopeName, scopeKeys),
         type: PendingOpType.create,
         id: id,
         payload: payload,
@@ -170,54 +174,54 @@ class SimpleSyncOrchestrator<T extends HasUpdatedAt, Id>
       ),
     );
     // Fire-and-forget background sync attempt
-    unawaited(synchronize(scope));
+    unawaited(synchronize(scopeKeys));
   }
 
   @override
   Future<void> enqueueUpdate(
-    SyncScope scope,
+    SyncScopeKeys scopeKeys,
     Id id,
     T payload, {
     CachePolicy? policy,
   }) async {
-    await local.upsertMany(scope, [payload]);
+    await local.upsertMany(scopeKeys, [payload]);
     if (policy == CachePolicy.offlineOnly) {
       return;
     }
     await local.enqueuePendingOp(
       PendingOp<T, Id>(
         opId: _uuid(),
-        scope: scope,
+        scope: SyncScope(local.scopeName, scopeKeys),
         type: PendingOpType.update,
         id: id,
         payload: payload,
         updatedAt: payload.updatedAt,
       ),
     );
-    unawaited(synchronize(scope));
+    unawaited(synchronize(scopeKeys));
   }
 
   @override
   Future<void> enqueueDelete(
-    SyncScope scope,
+    SyncScopeKeys scopeKeys,
     Id id, {
     CachePolicy? policy,
   }) async {
-    await local.deleteMany(scope, [id]);
+    await local.deleteMany(scopeKeys, [id]);
     if (policy == CachePolicy.offlineOnly) {
       return;
     }
     await local.enqueuePendingOp(
       PendingOp<T, Id>(
         opId: _uuid(),
-        scope: scope,
+        scope: SyncScope(local.scopeName, scopeKeys),
         type: PendingOpType.delete,
         id: id,
         payload: null,
         updatedAt: DateTime.now().toUtc(),
       ),
     );
-    unawaited(synchronize(scope));
+    unawaited(synchronize(scopeKeys));
   }
 
   // ID equality provided by Id type; avoid dynamic casts.

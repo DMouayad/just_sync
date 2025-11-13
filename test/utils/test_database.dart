@@ -16,6 +16,9 @@ class MockTable extends Table
 
   @override
   Set<Column> get primaryKey => {id};
+
+  @override
+  String get defaultScopeName => 'testModels';
 }
 
 class SyncPoints extends Table with SyncPointsTableMixin {}

@@ -17,7 +17,9 @@ void main() {
   group('DriftLocalStore QuerySpec', () {
     late TestDatabase db;
     late MockDriftLocalStore store;
-    const scope = SyncScope('records', {'userId': 'u1'});
+    late final scope = SyncScope(db.mockTable.defaultScopeName, {
+      'userId': 'u1',
+    });
 
     setUp(() async {
       db = TestDatabase();
@@ -61,7 +63,7 @@ void main() {
           tags: const ['x', 'z'],
         ),
       ];
-      await store.upsertMany(scope, items);
+      await store.upsertMany(scope.keys, items);
 
       // status == 'open' AND count > 5, order by count desc, limit 2
       final spec = QuerySpec(
@@ -72,7 +74,7 @@ void main() {
         orderBy: const [OrderSpec('count', descending: true)],
         limit: 2,
       );
-      final res = await store.queryWith(scope, spec);
+      final res = await store.queryWith(scope.keys, spec);
       expect(res.map((e) => e.id).toList(), ['b', 'd']);
 
       // like on title, contains on tags, inList on status
@@ -84,7 +86,7 @@ void main() {
         ],
         orderBy: const [OrderSpec('id')],
       );
-      final res2 = await store.queryWith(scope, spec2);
+      final res2 = await store.queryWith(scope.keys, spec2);
       expect(res2.map((e) => e.id).toList(), ['a', 'd']);
     });
   });
@@ -128,7 +130,7 @@ void main() {
           completed: true,
         ),
       ];
-      await store.upsertMany(scope, records);
+      await store.upsertMany(scope.keys, records);
     });
 
     tearDown(() async {
@@ -138,19 +140,19 @@ void main() {
     // String filters
     test('String eq', () async {
       final spec = QuerySpec(filters: [QueryFilter.eq('title', 'apple')]);
-      final results = await store.queryWith(scope, spec);
+      final results = await store.queryWith(scope.keys, spec);
       expect(results.map((e) => e.id), ['1']);
     });
 
     test('String neq', () async {
       final spec = QuerySpec(filters: [QueryFilter.neq('title', 'apple')]);
-      final results = await store.queryWith(scope, spec);
+      final results = await store.queryWith(scope.keys, spec);
       expect(results.map((e) => e.id), unorderedEquals(['2', '3', '4']));
     });
 
     test('String contains', () async {
       final spec = QuerySpec(filters: [QueryFilter.contains('title', 'apple')]);
-      final results = await store.queryWith(scope, spec);
+      final results = await store.queryWith(scope.keys, spec);
       expect(results.map((e) => e.id), unorderedEquals(['1', '3']));
     });
 
@@ -160,32 +162,32 @@ void main() {
           QueryFilter.inList('title', ['apple', 'orange']),
         ],
       );
-      final results = await store.queryWith(scope, spec);
+      final results = await store.queryWith(scope.keys, spec);
       expect(results.map((e) => e.id), unorderedEquals(['1', '4']));
     });
 
     // Int filters
     test('Int gt', () async {
       final spec = QuerySpec(filters: [QueryFilter.gt('count', 20)]);
-      final results = await store.queryWith(scope, spec);
+      final results = await store.queryWith(scope.keys, spec);
       expect(results.map((e) => e.id), ['3']);
     });
 
     test('Int gte', () async {
       final spec = QuerySpec(filters: [QueryFilter.gte('count', 20)]);
-      final results = await store.queryWith(scope, spec);
+      final results = await store.queryWith(scope.keys, spec);
       expect(results.map((e) => e.id), unorderedEquals(['2', '3', '4']));
     });
 
     test('Int lt', () async {
       final spec = QuerySpec(filters: [QueryFilter.lt('count', 20)]);
-      final results = await store.queryWith(scope, spec);
+      final results = await store.queryWith(scope.keys, spec);
       expect(results.map((e) => e.id), ['1']);
     });
 
     test('Int lte', () async {
       final spec = QuerySpec(filters: [QueryFilter.lte('count', 20)]);
-      final results = await store.queryWith(scope, spec);
+      final results = await store.queryWith(scope.keys, spec);
       expect(results.map((e) => e.id), unorderedEquals(['1', '2', '4']));
     });
 
@@ -195,7 +197,7 @@ void main() {
           QueryFilter.inList('count', [10, 30]),
         ],
       );
-      final results = await store.queryWith(scope, spec);
+      final results = await store.queryWith(scope.keys, spec);
       expect(results.map((e) => e.id), unorderedEquals(['1', '3']));
     });
 
@@ -204,7 +206,7 @@ void main() {
       final spec = QuerySpec(
         filters: [QueryFilter.gt('updatedAt', DateTime.utc(2025, 1, 2))],
       );
-      final results = await store.queryWith(scope, spec);
+      final results = await store.queryWith(scope.keys, spec);
       expect(results.map((e) => e.id), unorderedEquals(['3', '4']));
     });
 
@@ -212,27 +214,27 @@ void main() {
       final spec = QuerySpec(
         filters: [QueryFilter.lte('updatedAt', DateTime.utc(2025, 1, 2))],
       );
-      final results = await store.queryWith(scope, spec);
+      final results = await store.queryWith(scope.keys, spec);
       expect(results.map((e) => e.id), unorderedEquals(['1', '2']));
     });
 
     // Bool filters
     test('Bool eq', () async {
       final spec = QuerySpec(filters: [QueryFilter.eq('completed', true)]);
-      final results = await store.queryWith(scope, spec);
+      final results = await store.queryWith(scope.keys, spec);
       expect(results.map((e) => e.id), unorderedEquals(['2', '4']));
     });
 
     // Null filters
     test('isNull', () async {
       final spec = QuerySpec(filters: [QueryFilter.isNull('tags')]);
-      final results = await store.queryWith(scope, spec);
+      final results = await store.queryWith(scope.keys, spec);
       expect(results.map((e) => e.id), unorderedEquals(['1', '2', '4']));
     });
 
     test('isNotNull', () async {
       final spec = QuerySpec(filters: [QueryFilter.isNotNull('tags')]);
-      final results = await store.queryWith(scope, spec);
+      final results = await store.queryWith(scope.keys, spec);
       expect(results.map((e) => e.id), ['3']);
     });
 
@@ -244,32 +246,32 @@ void main() {
           QueryFilter.eq('completed', true),
         ],
       );
-      final results = await store.queryWith(scope, spec);
+      final results = await store.queryWith(scope.keys, spec);
       expect(results.map((e) => e.id), unorderedEquals(['2', '4']));
     });
 
     // Ordering
     test('orderBy ascending', () async {
       final spec = QuerySpec(orderBy: [OrderSpec('count')]);
-      final results = await store.queryWith(scope, spec);
+      final results = await store.queryWith(scope.keys, spec);
       expect(results.map((e) => e.id), ['1', '2', '4', '3']);
     });
 
     test('orderBy descending', () async {
       final spec = QuerySpec(orderBy: [OrderSpec('count', descending: true)]);
-      final results = await store.queryWith(scope, spec);
+      final results = await store.queryWith(scope.keys, spec);
       expect(results.map((e) => e.id), ['3', '2', '4', '1']);
     });
     group('QuerySpec Pagination', () {
       test('limit', () async {
         final spec = QuerySpec(orderBy: [OrderSpec('id')], limit: 2);
-        final results = await store.queryWith(scope, spec);
+        final results = await store.queryWith(scope.keys, spec);
         expect(results.map((e) => e.id), ['1', '2']);
       });
 
       test('limit and offset', () async {
         final spec = QuerySpec(orderBy: [OrderSpec('id')], limit: 2, offset: 1);
-        final results = await store.queryWith(scope, spec);
+        final results = await store.queryWith(scope.keys, spec);
         expect(results.map((e) => e.id), ['2', '3']);
       });
     });

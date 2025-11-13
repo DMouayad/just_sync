@@ -35,7 +35,7 @@ This directory contains the backend-agnostic abstractions that drive the package
 
 This directory contains the data structures used for communication within the package.
 
-*   **`SyncScope`:** A crucial concept that defines a logical subset of data to be synchronized (e.g., all tasks for a specific user).
+*   **`SyncScope` and `SyncScopeKeys`:** A `SyncScope` is a crucial concept that defines a logical subset of data to be synchronized (e.g., all tasks for a specific user). It consists of a `name` (typically identifying the data type, like 'todos') and `keys` (a `Map<String, String>` identifying the specific subset, like `{'userId': '123'}`). The public API of the orchestrator primarily uses `SyncScopeKeys` (a `typedef` for the map), simplifying calls by not requiring the user to manage the full `SyncScope` object.
 *   **`Delta`:** Represents a set of changes (`upserts` and `deletes`) fetched from the remote store.
 *   **`QuerySpec`:** A normalized, backend-agnostic description of a query, containing filters (`QueryFilter`), ordering (`OrderSpec`), and pagination. This is translated into native queries by the respective store implementation (Drift SQL or Supabase PostgREST).
 *   **`PendingOp`:** Represents a single offline write operation (create, update, delete) that is queued in the local database to be sent to the remote store later.
@@ -50,7 +50,9 @@ This is the highly-optimized implementation for using Drift as the local data so
 *   **Developer's Responsibility:** To use `DriftLocalStore`, a developer only needs to instantiate it, providing the following:
     *   `db`: The Drift database instance.
     *   `table`: The Drift `TableInfo` object for the entity.
+    *   `scopeName`: The name of the scope for this entity (e.g., 'todos').
     *   `idFromString`: A function to convert the entity's ID from a `String` (as stored in the `pending_ops` table).
+    *   `idToString`: A function to convert the entity's ID to a `String`.
     *   `fromJson`: A factory constructor or function to create an entity from a `Map` (for deserializing from `pending_ops`).
     *   `toInsertCompanion`/`toUpdateCompanion`/`toSoftDeleteCompanion`: Functions that create the appropriate Drift `Companion` for write operations.
 *   **`DriftSyncTableMixin`:** A critical mixin that developers **must** add to their Drift `Table` definitions. It provides the `updatedAt`, `scopeName`, and `scopeKeys` columns.
@@ -94,6 +96,9 @@ To implement `just_sync` for a new data model (e.g., `Todo`), follow these steps
       
       @override
       Set<Column> get primaryKey => {id};
+
+      @override
+      String get defaultScopeName => 'todos';
     }
 
     // Define SyncPoints and PendingOps tables
@@ -119,8 +124,10 @@ To implement `just_sync` for a new data model (e.g., `Todo`), follow these steps
 
     final localStore = DriftLocalStore<MyDatabase, Todo, String>(
       db,
+      scopeName: db.todos.defaultScopeName, // Tip: use the defaultScopeName from the Drift table
       table: db.todos,
       idFromString: (id) => id,
+      idToString: (id) => id,
       fromJson: (json) => Todo.fromJson(json),
       toInsertCompanion: (model, scope) => TodosCompanion.insert(
         id: model.id,
@@ -155,11 +162,14 @@ To implement `just_sync` for a new data model (e.g., `Todo`), follow these steps
     ```
 4.  **Use the Orchestrator:**
     ```dart
+    // Define the keys for the specific data subset you want to sync
+    const mySyncScopeKeys = {'userId': 'user-123'};
+
     // Synchronize data
-    await orchestrator.synchronize(mySyncScope);
+    await orchestrator.synchronize(mySyncScopeKeys);
 
     // Query local data
-    final todos = await orchestrator.read(mySyncScope);
+    final todos = await orchestrator.read(mySyncScopeKeys);
     ```
 
 ## 5. Diagrams

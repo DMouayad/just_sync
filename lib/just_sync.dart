@@ -10,6 +10,7 @@ export 'src/models/query_spec.dart';
 export 'src/models/sync_scope.dart';
 export 'src/models/traits.dart';
 export 'src/models/cache_policy.dart';
+export 'src/models/pending_op.dart';
 
 // == remote ==
 export 'src/remote/supabase/supabase_remote_store.dart';

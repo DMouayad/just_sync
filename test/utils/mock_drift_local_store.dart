@@ -7,16 +7,16 @@ class MockDriftLocalStore
     extends DriftLocalStore<TestDatabase, TestModel, String> {
   MockDriftLocalStore(super.db)
     : super(
+        scopeName: db.mockTable.defaultScopeName,
         fromJson: TestModel.fromJson,
         idToString: (id) => id,
         idFromString: (id) => id,
         table: db.mockTable,
-        toInsertCompanion: (TestModel model, SyncScope scope) {
+        toInsertCompanion: (TestModel model, SyncScopeKeys scopeKeys) {
           return MockTableCompanion.insert(
             id: model.id,
             title: model.title,
-            scopeName: scope.name,
-            scopeKeys: scope.keysToJson(),
+            scopeKeys: Value(scopeKeys.toJson()),
             status: Value(model.status),
             count: Value(model.count),
             tags: Value(model.tags),

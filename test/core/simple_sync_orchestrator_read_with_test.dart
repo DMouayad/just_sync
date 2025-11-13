@@ -11,15 +11,18 @@ void main() {
     late MockDriftLocalStore local;
     late InMemoryRemoteStore<TestModel, String> remote;
     late SimpleSyncOrchestrator<TestModel, String> orch;
-    const scope = SyncScope('records', {'userId': 'u1'});
+    const SyncScopeKeys scopeKeys = {'userId': 'u1'};
     tearDown(() async => await db.close());
 
     setUp(() async {
       db = TestDatabase();
       local = MockDriftLocalStore(db);
-      remote = InMemoryRemoteStore<TestModel, String>(idOf: (r) => r.id);
+      remote = InMemoryRemoteStore<TestModel, String>(
+        scopeName: db.mockTable.defaultScopeName,
+        idOf: (r) => r.id,
+      );
       // Seed remote scope maps so batchUpsert/fetchSince affect this scope
-      await remote.fetchSince(scope, null);
+      await remote.fetchSince(scopeKeys, null);
       orch = SimpleSyncOrchestrator<TestModel, String>(
         local: local,
         remote: remote,
@@ -31,7 +34,7 @@ void main() {
     test('offlineOnly evaluates only local cache', () async {
       // Local has items, remote has different items which should be ignored.
       final t2025 = DateTime.utc(2025, 1, 1);
-      await local.upsertMany(scope, [
+      await local.upsertMany(scopeKeys, [
         TestModelFactory.create(id: 'L1', title: 'local-1', updatedAt: t2025),
         TestModelFactory.create(
           id: 'L2',
@@ -53,7 +56,7 @@ void main() {
       );
 
       final items = await orch.readWith(
-        scope,
+        scopeKeys,
         spec,
         policy: CachePolicy.offlineOnly,
       );
@@ -66,7 +69,7 @@ void main() {
       () async {
         final base = DateTime.utc(2025, 2, 1);
         // Local has one item, remote has another item which should appear after sync.
-        await local.upsertMany(scope, [
+        await local.upsertMany(scopeKeys, [
           TestModelFactory.create(id: 'L1', title: 'local', updatedAt: base),
         ]);
         await remote.batchUpsert([
@@ -80,15 +83,15 @@ void main() {
         final spec = QuerySpec(filters: [QueryFilter.gte('updatedAt', base)]);
 
         final first = await orch.readWith(
-          scope,
+          scopeKeys,
           spec,
           policy: CachePolicy.localFirst,
         );
         expect(first.map((e) => e.id), contains('L1')); // immediate local
 
         // Allow background sync to complete
-        await orch.synchronize(scope);
-        final after = await local.queryWith(scope, spec);
+        await orch.synchronize(scopeKeys);
+        final after = await local.queryWith(scopeKeys, spec);
         expect(after.map((e) => e.id), containsAll(['L1', 'R1']));
       },
     );
@@ -111,7 +114,7 @@ void main() {
       );
 
       final items = await orch.readWith(
-        scope,
+        scopeKeys,
         spec,
         policy: CachePolicy.remoteFirst,
       );
@@ -138,14 +141,14 @@ void main() {
         );
 
         final items = await orch.readWith(
-          scope,
+          scopeKeys,
           spec,
           policy: CachePolicy.remoteFirst,
           preferRemoteEval: true,
         );
 
         // After preferRemoteEval, local should contain the remote-evaluated rows
-        final localNow = await local.queryWith(scope, spec);
+        final localNow = await local.queryWith(scopeKeys, spec);
         expect(localNow.map((e) => e.id), containsAll(['R1', 'R2']));
         expect(items.map((e) => e.id), containsAll(['R1', 'R2']));
       },

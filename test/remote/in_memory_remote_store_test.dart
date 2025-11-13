@@ -7,10 +7,14 @@ import '../utils/test_database.dart';
 void main() {
   group('InMemoryRemoteStore', () {
     late InMemoryRemoteStore<TestModel, String> remote;
+
     const scope = SyncScope('records', {'userId': 'u1'});
 
     setUp(() {
-      remote = InMemoryRemoteStore<TestModel, String>(idOf: (r) => r.id);
+      remote = InMemoryRemoteStore<TestModel, String>(
+        scopeName: scope.name,
+        idOf: (r) => r.id,
+      );
     });
 
     test('getServerTime returns UTC DateTime', () async {
@@ -23,7 +27,7 @@ void main() {
 
     test('fetchSince returns a delta with UTC serverTimestamp', () async {
       // Act
-      final delta = await remote.fetchSince(scope, null);
+      final delta = await remote.fetchSince(scope.keys, null);
 
       // Assert
       expect(delta.serverTimestamp.isUtc, isTrue);

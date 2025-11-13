@@ -4,6 +4,7 @@ import 'package:drift/drift.dart' as drift;
 
 import 'package:just_sync/src/core/store_interfaces.dart';
 import 'package:just_sync/src/local/drift/database_interface.dart';
+import 'package:just_sync/src/models/pending_op.dart';
 import 'package:just_sync/src/models/query_spec.dart';
 import 'package:just_sync/src/models/sync_scope.dart';
 import 'package:just_sync/src/models/traits.dart';
@@ -32,18 +33,21 @@ abstract interface class DriftModel<Id> implements HasId<Id>, HasUpdatedAt {
 /// configuration for your specific data model and Drift table.
 class DriftLocalStore<DB extends IDriftDatabase, T extends DriftModel<Id>, Id>
     implements LocalStore<T, Id> {
+  @override
+  final String scopeName;
   final DB db;
   final drift.TableInfo table;
   final Id Function(String stringId) idFromString;
   final String Function(Id id) idToString;
   final T Function(Map<String, dynamic>) fromJson;
-  final drift.Insertable<T> Function(T model, SyncScope scope)
+  final drift.Insertable<T> Function(T model, SyncScopeKeys scopeKeys)
   toInsertCompanion;
   final drift.Insertable<T> Function(T model) toUpdateCompanion;
   final drift.Insertable<T> Function() toSoftDeleteCompanion;
 
   const DriftLocalStore(
     this.db, {
+    required this.scopeName,
     required this.table,
     required this.idFromString,
     required this.idToString,
@@ -85,9 +89,9 @@ class DriftLocalStore<DB extends IDriftDatabase, T extends DriftModel<Id>, Id>
   }
 
   @override
-  Future<void> upsertMany(SyncScope scope, List<T> items) async {
+  Future<void> upsertMany(SyncScopeKeys scopeKeys, List<T> items) async {
     final companions = items
-        .map((item) => toInsertCompanion(item, scope))
+        .map((item) => toInsertCompanion(item, scopeKeys))
         .toList();
     if (companions.isEmpty) return;
 
@@ -101,7 +105,7 @@ class DriftLocalStore<DB extends IDriftDatabase, T extends DriftModel<Id>, Id>
   }
 
   @override
-  Future<void> deleteMany(SyncScope scope, List<Id> ids) async {
+  Future<void> deleteMany(SyncScopeKeys scopeKeys, List<Id> ids) async {
     if (ids.isEmpty) return;
 
     final idColumn = _resolveColumn('id');
@@ -113,10 +117,10 @@ class DriftLocalStore<DB extends IDriftDatabase, T extends DriftModel<Id>, Id>
       final scopeKeysCol = _resolveColumn('scopeKeys');
 
       final scopeFilter =
-          buildFilter(scopeNameCol, QueryFilter.eq('scopeName', scope.name)) &
+          buildFilter(scopeNameCol, QueryFilter.eq('scopeName', scopeName)) &
           buildFilter(
             scopeKeysCol,
-            QueryFilter.eq('scopeKeys', scope.keysToJson()),
+            QueryFilter.eq('scopeKeys', scopeKeys.toJson()),
           );
 
       final idFilter = idColumn.isIn(stringIds);
@@ -134,7 +138,7 @@ class DriftLocalStore<DB extends IDriftDatabase, T extends DriftModel<Id>, Id>
 
   @override
   Future<int> updateWhere(
-    SyncScope scope,
+    SyncScopeKeys scopeKeys,
     QuerySpec spec,
     List<T> newValues,
   ) async {
@@ -147,10 +151,10 @@ class DriftLocalStore<DB extends IDriftDatabase, T extends DriftModel<Id>, Id>
     final scopeKeysCol = _resolveColumn('scopeKeys');
     query.where(
       (_) =>
-          buildFilter(scopeNameCol, QueryFilter.eq('scopeName', scope.name)) &
+          buildFilter(scopeNameCol, QueryFilter.eq('scopeName', scopeName)) &
           buildFilter(
             scopeKeysCol,
-            QueryFilter.eq('scopeKeys', scope.keysToJson()),
+            QueryFilter.eq('scopeKeys', scopeKeys.toJson()),
           ),
     );
 
@@ -178,15 +182,15 @@ class DriftLocalStore<DB extends IDriftDatabase, T extends DriftModel<Id>, Id>
   }
 
   @override
-  Future<int> deleteWhere(SyncScope scope, QuerySpec spec) async {
+  Future<int> deleteWhere(SyncScopeKeys scopeKeys, QuerySpec spec) async {
     buildWhereClause() {
       final scopeNameCol = _resolveColumn('scopeName');
       final scopeKeysCol = _resolveColumn('scopeKeys');
       drift.Expression<bool> combinedFilter =
-          buildFilter(scopeNameCol, QueryFilter.eq('scopeName', scope.name)) &
+          buildFilter(scopeNameCol, QueryFilter.eq('scopeName', scopeName)) &
           buildFilter(
             scopeKeysCol,
-            QueryFilter.eq('scopeKeys', scope.keysToJson()),
+            QueryFilter.eq('scopeKeys', scopeKeys.toJson()),
           );
 
       // Apply QuerySpec filters
@@ -217,20 +221,20 @@ class DriftLocalStore<DB extends IDriftDatabase, T extends DriftModel<Id>, Id>
   }
 
   @override
-  Future<List<T>> query(SyncScope scope) {
-    return queryWith(scope, const QuerySpec());
+  Future<List<T>> query(SyncScopeKeys scopeKeys) {
+    return queryWith(scopeKeys, const QuerySpec());
   }
 
   @override
-  Future<List<T>> querySince(SyncScope scope, DateTime since) {
+  Future<List<T>> querySince(SyncScopeKeys scopeKeys, DateTime since) {
     return queryWith(
-      scope,
+      scopeKeys,
       QuerySpec(filters: [QueryFilter.gt('updatedAt', since)]),
     );
   }
 
   @override
-  Future<List<T>> queryWith(SyncScope scope, QuerySpec spec) async {
+  Future<List<T>> queryWith(SyncScopeKeys scopeKeys, QuerySpec spec) async {
     final query = db.select(table);
 
     // Apply scope
@@ -238,10 +242,10 @@ class DriftLocalStore<DB extends IDriftDatabase, T extends DriftModel<Id>, Id>
     final scopeKeysCol = _resolveColumn('scopeKeys');
     query.where(
       (_) =>
-          buildFilter(scopeNameCol, QueryFilter.eq('scopeName', scope.name)) &
+          buildFilter(scopeNameCol, QueryFilter.eq('scopeName', scopeName)) &
           buildFilter(
             scopeKeysCol,
-            QueryFilter.eq('scopeKeys', scope.keysToJson()),
+            QueryFilter.eq('scopeKeys', scopeKeys.toJson()),
           ),
     );
 
@@ -285,36 +289,39 @@ class DriftLocalStore<DB extends IDriftDatabase, T extends DriftModel<Id>, Id>
   }
 
   @override
-  Future<DateTime?> getSyncPoint(SyncScope scope) async {
+  Future<DateTime?> getSyncPoint(SyncScopeKeys scopeKeys) async {
     final query = db.select(db.syncPoints)
       ..where(
         (t) =>
-            t.scopeName.equals(scope.name) &
-            t.scopeKeys.equals(scope.keysToJson()),
+            t.scopeName.equals(scopeName) &
+            t.scopeKeys.equals(scopeKeys.toJson()),
       );
     final result = await query.getSingleOrNull();
     return result?.lastSyncedAt;
   }
 
   @override
-  Future<void> saveSyncPoint(SyncScope scope, DateTime timestamp) async {
+  Future<void> saveSyncPoint(
+    SyncScopeKeys scopeKeys,
+    DateTime timestamp,
+  ) async {
     await db.customInsert(
       'INSERT OR REPLACE INTO ${db.syncPoints.actualTableName} (scope_name, scope_keys, last_synced_at) VALUES (?, ?, ?)',
       variables: [
-        drift.Variable(scope.name),
-        drift.Variable(scope.keysToJson()),
+        drift.Variable(scopeName),
+        drift.Variable(scopeKeys.toJson()),
         drift.Variable(timestamp),
       ],
     );
   }
 
   @override
-  Future<List<PendingOp<T, Id>>> getPendingOps(SyncScope scope) async {
+  Future<List<PendingOp<T, Id>>> getPendingOps(SyncScopeKeys scopeKeys) async {
     final query = db.select(db.pendingOps)
       ..where(
         (t) =>
-            t.scopeName.equals(scope.name) &
-            t.scopeKeys.equals(scope.keysToJson()),
+            t.scopeName.equals(scopeName) &
+            t.scopeKeys.equals(scopeKeys.toJson()),
       );
     final rows = await query.get();
 
@@ -325,7 +332,7 @@ class DriftLocalStore<DB extends IDriftDatabase, T extends DriftModel<Id>, Id>
           return PendingOp(
             id: idFromString(row.entityId),
             opId: row.id,
-            scope: scope,
+            scope: SyncScope(scopeName, scopeKeys),
             type: row.opType,
             payload: row.payload != null
                 ? fromJson(jsonDecode(row.payload!))
@@ -342,7 +349,7 @@ class DriftLocalStore<DB extends IDriftDatabase, T extends DriftModel<Id>, Id>
       'INSERT INTO ${db.pendingOps.actualTableName} (id, scope_name, scope_keys, op_type, entity_id, payload, updated_at) VALUES (?, ?, ?, ?, ?, ?, ?)',
       variables: [
         drift.Variable(op.opId),
-        drift.Variable(op.scope.name),
+        drift.Variable(scopeName),
         drift.Variable(jsonEncode(op.scope.keys)),
         drift.Variable(op.type.index),
         drift.Variable(idToString(op.id)),
@@ -355,7 +362,10 @@ class DriftLocalStore<DB extends IDriftDatabase, T extends DriftModel<Id>, Id>
   }
 
   @override
-  Future<void> clearPendingOps(SyncScope scope, List<String> opIds) async {
+  Future<void> clearPendingOps(
+    SyncScopeKeys scopeKeys,
+    List<String> opIds,
+  ) async {
     await (db.delete(db.pendingOps)..where((t) => t.id.isIn(opIds))).go();
   }
 

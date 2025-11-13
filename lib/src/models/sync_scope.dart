@@ -1,9 +1,15 @@
 import 'dart:convert';
 
+typedef SyncScopeKeys = Map<String, String>;
+
+extension SyncScopeKeysX on SyncScopeKeys {
+  String toJson() => jsonEncode(this);
+}
+
 /// Scope identifies a logical subset for syncing, e.g., per user or template.
 class SyncScope {
   final String name;
-  final Map<String, String> keys;
+  final SyncScopeKeys keys;
   const SyncScope(this.name, [this.keys = const {}]);
 
   factory SyncScope.collection(String name) => SyncScope(name);
