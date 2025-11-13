@@ -65,7 +65,10 @@ void main() {
 
       // status == 'open' AND count > 5, order by count desc, limit 2
       final spec = QuerySpec(
-        filters: const [FilterOp.eq('status', 'open'), FilterOp.gt('count', 5)],
+        filters: const [
+          QueryFilter.eq('status', 'open'),
+          QueryFilter.gt('count', 5),
+        ],
         orderBy: const [OrderSpec('count', descending: true)],
         limit: 2,
       );
@@ -75,9 +78,9 @@ void main() {
       // like on title, contains on tags, inList on status
       final spec2 = QuerySpec(
         filters: const [
-          FilterOp.like('title', 'Al'),
-          FilterOp.contains('tags', 'x'),
-          FilterOp.inList('status', ['open', 'closed']),
+          QueryFilter.like('title', 'Al'),
+          QueryFilter.contains('tags', 'x'),
+          QueryFilter.inList('status', ['open', 'closed']),
         ],
         orderBy: const [OrderSpec('id')],
       );
@@ -134,19 +137,19 @@ void main() {
 
     // String filters
     test('String eq', () async {
-      final spec = QuerySpec(filters: [FilterOp.eq('title', 'apple')]);
+      final spec = QuerySpec(filters: [QueryFilter.eq('title', 'apple')]);
       final results = await store.queryWith(scope, spec);
       expect(results.map((e) => e.id), ['1']);
     });
 
     test('String neq', () async {
-      final spec = QuerySpec(filters: [FilterOp.neq('title', 'apple')]);
+      final spec = QuerySpec(filters: [QueryFilter.neq('title', 'apple')]);
       final results = await store.queryWith(scope, spec);
       expect(results.map((e) => e.id), unorderedEquals(['2', '3', '4']));
     });
 
     test('String contains', () async {
-      final spec = QuerySpec(filters: [FilterOp.contains('title', 'apple')]);
+      final spec = QuerySpec(filters: [QueryFilter.contains('title', 'apple')]);
       final results = await store.queryWith(scope, spec);
       expect(results.map((e) => e.id), unorderedEquals(['1', '3']));
     });
@@ -154,7 +157,7 @@ void main() {
     test('String inList', () async {
       final spec = QuerySpec(
         filters: [
-          FilterOp.inList('title', ['apple', 'orange']),
+          QueryFilter.inList('title', ['apple', 'orange']),
         ],
       );
       final results = await store.queryWith(scope, spec);
@@ -163,25 +166,25 @@ void main() {
 
     // Int filters
     test('Int gt', () async {
-      final spec = QuerySpec(filters: [FilterOp.gt('count', 20)]);
+      final spec = QuerySpec(filters: [QueryFilter.gt('count', 20)]);
       final results = await store.queryWith(scope, spec);
       expect(results.map((e) => e.id), ['3']);
     });
 
     test('Int gte', () async {
-      final spec = QuerySpec(filters: [FilterOp.gte('count', 20)]);
+      final spec = QuerySpec(filters: [QueryFilter.gte('count', 20)]);
       final results = await store.queryWith(scope, spec);
       expect(results.map((e) => e.id), unorderedEquals(['2', '3', '4']));
     });
 
     test('Int lt', () async {
-      final spec = QuerySpec(filters: [FilterOp.lt('count', 20)]);
+      final spec = QuerySpec(filters: [QueryFilter.lt('count', 20)]);
       final results = await store.queryWith(scope, spec);
       expect(results.map((e) => e.id), ['1']);
     });
 
     test('Int lte', () async {
-      final spec = QuerySpec(filters: [FilterOp.lte('count', 20)]);
+      final spec = QuerySpec(filters: [QueryFilter.lte('count', 20)]);
       final results = await store.queryWith(scope, spec);
       expect(results.map((e) => e.id), unorderedEquals(['1', '2', '4']));
     });
@@ -189,7 +192,7 @@ void main() {
     test('Int inList', () async {
       final spec = QuerySpec(
         filters: [
-          FilterOp.inList('count', [10, 30]),
+          QueryFilter.inList('count', [10, 30]),
         ],
       );
       final results = await store.queryWith(scope, spec);
@@ -199,7 +202,7 @@ void main() {
     // DateTime filters
     test('DateTime gt', () async {
       final spec = QuerySpec(
-        filters: [FilterOp.gt('updatedAt', DateTime.utc(2025, 1, 2))],
+        filters: [QueryFilter.gt('updatedAt', DateTime.utc(2025, 1, 2))],
       );
       final results = await store.queryWith(scope, spec);
       expect(results.map((e) => e.id), unorderedEquals(['3', '4']));
@@ -207,7 +210,7 @@ void main() {
 
     test('DateTime lte', () async {
       final spec = QuerySpec(
-        filters: [FilterOp.lte('updatedAt', DateTime.utc(2025, 1, 2))],
+        filters: [QueryFilter.lte('updatedAt', DateTime.utc(2025, 1, 2))],
       );
       final results = await store.queryWith(scope, spec);
       expect(results.map((e) => e.id), unorderedEquals(['1', '2']));
@@ -215,20 +218,20 @@ void main() {
 
     // Bool filters
     test('Bool eq', () async {
-      final spec = QuerySpec(filters: [FilterOp.eq('completed', true)]);
+      final spec = QuerySpec(filters: [QueryFilter.eq('completed', true)]);
       final results = await store.queryWith(scope, spec);
       expect(results.map((e) => e.id), unorderedEquals(['2', '4']));
     });
 
     // Null filters
     test('isNull', () async {
-      final spec = QuerySpec(filters: [FilterOp.isNull('tags')]);
+      final spec = QuerySpec(filters: [QueryFilter.isNull('tags')]);
       final results = await store.queryWith(scope, spec);
       expect(results.map((e) => e.id), unorderedEquals(['1', '2', '4']));
     });
 
     test('isNotNull', () async {
-      final spec = QuerySpec(filters: [FilterOp.isNotNull('tags')]);
+      final spec = QuerySpec(filters: [QueryFilter.isNotNull('tags')]);
       final results = await store.queryWith(scope, spec);
       expect(results.map((e) => e.id), ['3']);
     });
@@ -236,7 +239,10 @@ void main() {
     // Combined filters
     test('multiple filters (AND)', () async {
       final spec = QuerySpec(
-        filters: [FilterOp.gte('count', 20), FilterOp.eq('completed', true)],
+        filters: [
+          QueryFilter.gte('count', 20),
+          QueryFilter.eq('completed', true),
+        ],
       );
       final results = await store.queryWith(scope, spec);
       expect(results.map((e) => e.id), unorderedEquals(['2', '4']));

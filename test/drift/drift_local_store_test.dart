@@ -194,7 +194,7 @@ void main() {
       // updateWhere: only ids that match spec should be updated
       final spec = QuerySpec(
         filters: [
-          FilterOp.inList('id', ['x']),
+          QueryFilter.inList('id', ['x']),
         ],
       );
       final changed = await store.updateWhere(scope, spec, [
@@ -212,14 +212,14 @@ void main() {
       expect(changed, 1);
       final after = await store.queryWith(
         scope,
-        QuerySpec(filters: [FilterOp.eq('id', 'x')]),
+        QuerySpec(filters: [QueryFilter.eq('id', 'x')]),
       );
       expect(after.single.title, 'X2');
 
       // deleteWhere by id
       final deleted = await store.deleteWhere(
         scope,
-        QuerySpec(filters: [FilterOp.eq('id', 'y')]),
+        QuerySpec(filters: [QueryFilter.eq('id', 'y')]),
       );
       expect(deleted, 1);
       final remain = await store.query(scope);

@@ -113,10 +113,10 @@ class DriftLocalStore<DB extends IDriftDatabase, T extends DriftModel<Id>, Id>
       final scopeKeysCol = _resolveColumn('scopeKeys');
 
       final scopeFilter =
-          buildFilter(scopeNameCol, FilterOp.eq('scopeName', scope.name)) &
+          buildFilter(scopeNameCol, QueryFilter.eq('scopeName', scope.name)) &
           buildFilter(
             scopeKeysCol,
-            FilterOp.eq('scopeKeys', scope.keysToJson()),
+            QueryFilter.eq('scopeKeys', scope.keysToJson()),
           );
 
       final idFilter = idColumn.isIn(stringIds);
@@ -147,10 +147,10 @@ class DriftLocalStore<DB extends IDriftDatabase, T extends DriftModel<Id>, Id>
     final scopeKeysCol = _resolveColumn('scopeKeys');
     query.where(
       (_) =>
-          buildFilter(scopeNameCol, FilterOp.eq('scopeName', scope.name)) &
+          buildFilter(scopeNameCol, QueryFilter.eq('scopeName', scope.name)) &
           buildFilter(
             scopeKeysCol,
-            FilterOp.eq('scopeKeys', scope.keysToJson()),
+            QueryFilter.eq('scopeKeys', scope.keysToJson()),
           ),
     );
 
@@ -183,10 +183,10 @@ class DriftLocalStore<DB extends IDriftDatabase, T extends DriftModel<Id>, Id>
       final scopeNameCol = _resolveColumn('scopeName');
       final scopeKeysCol = _resolveColumn('scopeKeys');
       drift.Expression<bool> combinedFilter =
-          buildFilter(scopeNameCol, FilterOp.eq('scopeName', scope.name)) &
+          buildFilter(scopeNameCol, QueryFilter.eq('scopeName', scope.name)) &
           buildFilter(
             scopeKeysCol,
-            FilterOp.eq('scopeKeys', scope.keysToJson()),
+            QueryFilter.eq('scopeKeys', scope.keysToJson()),
           );
 
       // Apply QuerySpec filters
@@ -225,7 +225,7 @@ class DriftLocalStore<DB extends IDriftDatabase, T extends DriftModel<Id>, Id>
   Future<List<T>> querySince(SyncScope scope, DateTime since) {
     return queryWith(
       scope,
-      QuerySpec(filters: [FilterOp.gt('updatedAt', since)]),
+      QuerySpec(filters: [QueryFilter.gt('updatedAt', since)]),
     );
   }
 
@@ -238,10 +238,10 @@ class DriftLocalStore<DB extends IDriftDatabase, T extends DriftModel<Id>, Id>
     final scopeKeysCol = _resolveColumn('scopeKeys');
     query.where(
       (_) =>
-          buildFilter(scopeNameCol, FilterOp.eq('scopeName', scope.name)) &
+          buildFilter(scopeNameCol, QueryFilter.eq('scopeName', scope.name)) &
           buildFilter(
             scopeKeysCol,
-            FilterOp.eq('scopeKeys', scope.keysToJson()),
+            QueryFilter.eq('scopeKeys', scope.keysToJson()),
           ),
     );
 
@@ -359,7 +359,10 @@ class DriftLocalStore<DB extends IDriftDatabase, T extends DriftModel<Id>, Id>
     await (db.delete(db.pendingOps)..where((t) => t.id.isIn(opIds))).go();
   }
 
-  drift.Expression<bool> buildFilter(drift.GeneratedColumn column, FilterOp f) {
+  drift.Expression<bool> buildFilter(
+    drift.GeneratedColumn column,
+    QueryFilter f,
+  ) {
     final value = f.value;
 
     if (f.op == FilterOperator.isNull) return column.isNull();

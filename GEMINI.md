@@ -37,7 +37,7 @@ This directory contains the data structures used for communication within the pa
 
 *   **`SyncScope`:** A crucial concept that defines a logical subset of data to be synchronized (e.g., all tasks for a specific user).
 *   **`Delta`:** Represents a set of changes (`upserts` and `deletes`) fetched from the remote store.
-*   **`QuerySpec`:** A normalized, backend-agnostic description of a query, containing filters (`FilterOp`), ordering (`OrderSpec`), and pagination. This is translated into native queries by the respective store implementation (Drift SQL or Supabase PostgREST).
+*   **`QuerySpec`:** A normalized, backend-agnostic description of a query, containing filters (`QueryFilter`), ordering (`OrderSpec`), and pagination. This is translated into native queries by the respective store implementation (Drift SQL or Supabase PostgREST).
 *   **`PendingOp`:** Represents a single offline write operation (create, update, delete) that is queued in the local database to be sent to the remote store later.
 *   **`traits.dart`:** Contains `HasId<Id>` and `HasUpdatedAt`, simple interfaces that data models must implement to be compatible with the sync engine.
 
