@@ -1403,6 +1403,9 @@ abstract class _$TestDatabase extends GeneratedDatabase {
     syncPoints,
     pendingOps,
   ];
+  @override
+  DriftDatabaseOptions get options =>
+      const DriftDatabaseOptions(storeDateTimeAsText: true);
 }
 
 typedef $$MockTableTableCreateCompanionBuilder =

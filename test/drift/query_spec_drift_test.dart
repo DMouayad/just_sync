@@ -1,18 +1,12 @@
 import 'package:flutter_test/flutter_test.dart';
 
-import 'package:drift/drift.dart' show driftRuntimeOptions;
 import 'package:just_sync/just_sync.dart';
 
 import '../utils/mock_drift_local_store.dart';
 import '../utils/test_database.dart';
 
 void main() {
-  // Required for drift_flutter/path_provider in tests.
   TestWidgetsFlutterBinding.ensureInitialized();
-  setUpAll(() {
-    // Suppress multiple database warning in tests where the same executor can be reused.
-    driftRuntimeOptions.dontWarnAboutMultipleDatabases = true;
-  });
 
   group('DriftLocalStore QuerySpec', () {
     late TestDatabase db;
@@ -216,6 +210,62 @@ void main() {
       );
       final results = await store.queryWith(scope.keys, spec);
       expect(results.map((e) => e.id), unorderedEquals(['1', '2']));
+    });
+
+    test('DateTime sameDate', () async {
+      final spec = QuerySpec(
+        filters: [QueryFilter.sameDate('updatedAt', DateTime.utc(2025, 1, 2))],
+      );
+      final results = await store.queryWith(scope.keys, spec);
+      expect(results.map((e) => e.id), ['2']);
+    });
+
+    test('DateTime sameMonth', () async {
+      final spec = QuerySpec(
+        filters: [
+          QueryFilter.sameMonth('updatedAt', DateTime.utc(2025, 1, 15)),
+        ],
+      );
+      final results = await store.queryWith(scope.keys, spec);
+      expect(results.map((e) => e.id), unorderedEquals(['1', '2', '3', '4']));
+    });
+
+    test('DateTime sameYear', () async {
+      final spec = QuerySpec(
+        filters: [QueryFilter.sameYear('updatedAt', DateTime.utc(2025, 6, 15))],
+      );
+      final results = await store.queryWith(scope.keys, spec);
+      expect(results.map((e) => e.id), unorderedEquals(['1', '2', '3', '4']));
+    });
+
+    test('DateTime between', () async {
+      final spec = QuerySpec(
+        filters: [
+          QueryFilter.betweenDateTime(
+            'updatedAt',
+            DateTime.utc(2025, 1, 1), // Start of day 1 (midnight)
+            DateTime.utc(2025, 1, 3, 12, 0, 0), // End of day 3, 12:00:00
+          ),
+        ],
+      );
+      final results = await store.queryWith(scope.keys, spec);
+      // Records 1, 2, 3 should be included. Record 4 is outside the range.
+      expect(results.map((e) => e.id), unorderedEquals(['1', '2', '3']));
+    });
+
+    test('DateTime betweenDate', () async {
+      final spec = QuerySpec(
+        filters: [
+          QueryFilter.betweenDate(
+            'updatedAt',
+            DateTime.utc(2025, 1, 2), // Start of day 2
+            DateTime.utc(2025, 1, 3), // End of day 3
+          ),
+        ],
+      );
+      final results = await store.queryWith(scope.keys, spec);
+      // Records 2 and 3 should be included.
+      expect(results.map((e) => e.id), unorderedEquals(['2', '3']));
     });
 
     // Bool filters

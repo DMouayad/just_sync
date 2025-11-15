@@ -40,7 +40,12 @@ enum FilterOperator {
   isNull,
   isNotNull,
   between,
+  betweenDate,
+  betweenDateTime,
   inList, // value IN (...)
+  sameDate,
+  sameMonth,
+  sameYear,
 }
 
 /// A single filter predicate. Field names should match the serialized payload keys.
@@ -56,12 +61,9 @@ class QueryFilter<T> {
   const QueryFilter.lt(this.field, T this.value) : op = FilterOperator.lt;
   const QueryFilter.lte(this.field, T this.value) : op = FilterOperator.lte;
   const QueryFilter.like(this.field, T this.value) : op = FilterOperator.like;
-  const QueryFilter.between(
-    this.field, {
-    required T firstValue,
-    required T secondValue,
-  }) : op = FilterOperator.between,
-       value = (firstValue, secondValue);
+  QueryFilter.between(this.field, T firstValue, T secondValue)
+    : op = FilterOperator.between,
+      value = List<T>.unmodifiable([firstValue, secondValue]);
   const QueryFilter.contains(this.field, this.value)
     : op = FilterOperator.contains;
   QueryFilter.isNull(this.field) : op = FilterOperator.isNull, value = null;
@@ -71,6 +73,24 @@ class QueryFilter<T> {
   const QueryFilter.inList(this.field, List values)
     : op = FilterOperator.inList,
       value = values;
+  const QueryFilter.sameDate(this.field, DateTime date)
+    : op = FilterOperator.sameDate,
+      value = date;
+  const QueryFilter.sameMonth(this.field, DateTime date)
+    : op = FilterOperator.sameMonth,
+      value = date;
+  const QueryFilter.sameYear(this.field, DateTime date)
+    : op = FilterOperator.sameYear,
+      value = date;
+  QueryFilter.betweenDateTime(
+    this.field,
+    DateTime firstValue,
+    DateTime secondValue,
+  ) : op = FilterOperator.betweenDateTime,
+      value = [firstValue, secondValue];
+  QueryFilter.betweenDate(this.field, DateTime firstValue, DateTime secondValue)
+    : op = FilterOperator.betweenDate,
+      value = [firstValue, secondValue];
 }
 
 /// Ordering specification.

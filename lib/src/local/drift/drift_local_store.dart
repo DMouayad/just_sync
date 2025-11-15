@@ -446,38 +446,69 @@ class DriftLocalStore<DB extends IDriftDatabase, T extends DriftModel<Id>, Id>
     // DateTime columns
     if (column is drift.Column<DateTime>) {
       final col = column as drift.DateTimeColumn;
-      final val = value is DateTime ? value : DateTime.parse(value.toString());
-
+      DateTime valueToDateTime(dynamic value) =>
+          value is DateTime ? value : DateTime.parse(value.toString());
       switch (f.op) {
         case FilterOperator.eq:
-          return col.equals(val);
+          return col.equals(valueToDateTime(value));
         case FilterOperator.neq:
-          return col.equals(val).not();
+          return col.equals(valueToDateTime(value)).not();
         case FilterOperator.gt:
-          return col.isBiggerThanValue(val);
+          return col.isBiggerThanValue(valueToDateTime(value));
         case FilterOperator.gte:
-          return col.isBiggerOrEqualValue(val);
+          return col.isBiggerOrEqualValue(valueToDateTime(value));
         case FilterOperator.lt:
-          return col.isSmallerThanValue(val);
+          return col.isSmallerThanValue(valueToDateTime(value));
         case FilterOperator.lte:
-          return col.isSmallerOrEqualValue(val);
-        case FilterOperator.between:
-          final valList = (value as List<DateTime>);
-          if (valList.length != 2) {
-            throw ArgumentError('between requires a list of 2 values');
+          return col.isSmallerOrEqualValue(valueToDateTime(value));
+        case FilterOperator.betweenDateTime:
+          if (value is! List<DateTime> || value.length != 2) {
+            throw ArgumentError('between requires a list of 2 DateTime values');
           }
-          return col.isBetweenValues(valList[0], valList[1]);
+          return col.isBetweenValues(value[0], value[1]);
         case FilterOperator.inList:
           final valList = (value as Iterable?)?.map(
             (v) => v is DateTime ? v : DateTime.parse(v.toString()),
           );
-
           if (valList == null) {
             throw ArgumentError(
               'inList requires an Iterable for DateTime column',
             );
           }
           return col.isIn(valList);
+        case FilterOperator.sameDate:
+          final val = valueToDateTime(value);
+
+          return col.year.equals(val.year) &
+              col.month.equals(val.month) &
+              col.day.equals(val.day);
+        case FilterOperator.sameMonth:
+          final val = valueToDateTime(value);
+          return col.year.equals(val.year) & col.month.equals(val.month);
+        case FilterOperator.sameYear:
+          return col.year.equals(valueToDateTime(value).year);
+
+        case FilterOperator.betweenDate:
+          if (value is! List<DateTime> || value.length != 2) {
+            throw ArgumentError('between requires a list of 2 DateTime values');
+          }
+          final val1 = value[0];
+          final val2 = value[1];
+          final start = DateTime.utc(val1.year, val1.month, val1.day);
+          final end = DateTime.utc(
+            val2.year,
+            val2.month,
+            val2.day,
+            23,
+            59,
+            59,
+            999,
+          );
+          return col.isBetweenValues(start, end);
+        case FilterOperator.between:
+          throw ArgumentError(
+            'Use betweenDateTime or betweenDate for DateTime columns',
+          );
         default:
           throw ArgumentError(
             'Unsupported operator ${f.op} for DateTime column',
